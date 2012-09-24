@@ -19,16 +19,10 @@ class BaseSkeleton implements SkeletonInterface
     }
 
     /**
-     *     permissions:
-    - root:
-    path:       "/"
-    ownership:  "-R $superuser.$group"
-    acl:
-    - "-R -m user::rw-"
-    - "-R -m group::---"
-    - "-R -m other::---"
+     * @param \Cilex\Application $app
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
-
     public function create(Application $app, Project $project, OutputInterface $output)
     {
         /** @var $filesystem FileSystemProvider */
@@ -45,6 +39,11 @@ class BaseSkeleton implements SkeletonInterface
         $project->addPermissionDefinition($permissionDefinition);
     }
 
+    /**
+     * @param \Cilex\Application $app
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
     public function permissions(Application $app, Project $project, OutputInterface $output){
         /** @var $permission PermissionsProvider */
         $permission = $app["permission"];

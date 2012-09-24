@@ -104,6 +104,10 @@ class PermissionsProvider implements ServiceProviderInterface
         }
     }
 
+    /**
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
     public function applyPermissions(Project $project, OutputInterface $output){
         /** @var $process ProcessProvider */
         $process = $this->app["process"];

@@ -16,7 +16,7 @@ class SetPermissionsCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('setpermissions')
+            ->setName('permissions')
             ->setDescription('Set the permissions of a kServer project')
             ->addArgument('name', InputArgument::REQUIRED, 'The name of the project');
     }
