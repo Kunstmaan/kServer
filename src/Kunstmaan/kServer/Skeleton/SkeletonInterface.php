@@ -22,4 +22,12 @@ interface SkeletonInterface
      */
     public function create(Application $app, Project $project, OutputInterface $output);
 
+    /**
+     * @param \Cilex\Application $app
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return mixed
+     */
+    public function maintenance(Application $app, Project $project, OutputInterface $output);
+
 }

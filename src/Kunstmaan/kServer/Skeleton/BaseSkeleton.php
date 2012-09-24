@@ -53,4 +53,15 @@ class BaseSkeleton implements SkeletonInterface
         $permission->applyPermissions($project, $output);
     }
 
+    /**
+     * @param \Cilex\Application $app
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return mixed|void
+     */
+    public function maintenance(Application $app, Project $project, OutputInterface $output){
+        $this->permissions($app, $project, $output);
+    }
+
+
 }

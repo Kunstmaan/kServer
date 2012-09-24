@@ -11,4 +11,6 @@ $app->register(new \Kunstmaan\kServer\Provider\ProjectConfigProvider());
 $app->register(new \Kunstmaan\kServer\Provider\PermissionsProvider());
 $app->command(new \Kunstmaan\kServer\Command\NewProjectCommand());
 $app->command(new \Kunstmaan\kServer\Command\SetPermissionsCommand());
+$app->command(new \Kunstmaan\kServer\Command\MaintenanceCommand());
+
 $app->run();

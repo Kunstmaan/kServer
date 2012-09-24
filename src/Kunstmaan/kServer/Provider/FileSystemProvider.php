@@ -24,6 +24,15 @@ class FileSystemProvider implements ServiceProviderInterface
     }
 
     /**
+     * @return array
+     */
+    public function getProjects(){
+        $finder = new Finder();
+        $finder->directories()->sortByName()->in($this->app["config"]["projects"]["path"])->depth('== 0');
+        return iterator_to_array($finder);
+    }
+
+    /**
      * @param $projectname
      * @return bool
      */
