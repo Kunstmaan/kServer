@@ -93,7 +93,7 @@ class Project
             $config["kserver"]["permissions"][$pd->getName()]["ownership"] = $pd->getOwnership();
             $config["kserver"]["permissions"][$pd->getName()]["acl"] = $pd->getAcl();
         }
-        //$config["kserver"]["backup"]["excluded"] = $this->getExcludedFromBackup();
+        $config["kserver"]["backup"]["excluded"] = $this->getExcludedFromBackup();
         $dumper = new Dumper();
         $yaml = $dumper->dump($config, 5);
         file_put_contents($this->getConfigPath(), $yaml);
@@ -104,6 +104,11 @@ class Project
         $config = Yaml::parse($this->getConfigPath());
         foreach( $config["kserver"]["dependencies"] as $dep){
             $this->addDependency(new $dep);
+        }
+        if(isset($config["kserver"]["backup"]["excluded"])){
+            foreach( $config["kserver"]["backup"]["excluded"] as $excluded){
+                $this->addExcludedFromBackup($excluded);
+            }
         }
         foreach( $config["kserver"]["permissions"] as $name => $pdarr){
             $pd = new PermissionDefinition();

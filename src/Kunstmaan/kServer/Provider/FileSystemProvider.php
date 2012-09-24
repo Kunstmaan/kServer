@@ -55,4 +55,34 @@ class FileSystemProvider implements ServiceProviderInterface
         $projectDirectory = $this->getProjectDirectory($project->getName());
         $this->app["process"]->executeCommand('mkdir -p '. $projectDirectory . '/config', $output);
     }
+
+    public function runTar(Project $project, OutputInterface $output){
+        $this->app["process"]->executeCommand('mkdir -p ' . $this->app["config"]["projects"]["backuppath"], $output);
+        $projectDirectory = $this->getProjectDirectory($project->getName());
+        $excluded = '';
+        if(!is_null($project->getExcludedFromBackup())){
+            foreach($project->getExcludedFromBackup() as $excl){
+                $excluded = $excluded . " --exclude='".$excl."'";
+            }
+        }
+        $stats = $this->app["process"]->executeCommand('nice -n 19 tar --create --absolute-names '.$excluded.' --file '.$this->app["config"]["projects"]["backuppath"].'/'.$project->getName().'.tar.gz --totals --gzip '.$projectDirectory.'/ 2>&1', $output);
+        $output->writeln("<info>      > Tar created! ". $stats . "</info>");
+    }
 }
+/*
+	CMD("mkdir -p %s" % destdir)
+	excludeparam = ""
+	for exclude in excludes:
+	    n = exclude
+	    if (exclude.startswith("/")):
+	        n = project['project.dir'] + exclude
+	    if (exclude.endswith("/")):
+            n = n + '*'
+	    excludeparam = excludeparam + "--exclude='" + n + "' "
+	D("Tarring project to %s%s, excluding %s" % (destdir, project['project.name'], excludes))
+	D("--> nice -n 19 tar --create --absolute-names %s --file %s%s.tar.gz --totals --gzip %s/ 2>&1" % (excludeparam, destdir, project['project.name'], project['project.dir']))
+	tarstats = CMDGET("nice -n 19 tar --create --absolute-names %s --file %s%s.tar.gz --totals --gzip %s/ 2>&1" % (excludeparam, destdir, project['project.name'], project['project.dir']))
+	D(" --> Success [ %s ]" % tarstats.rstrip())
+	D(" --> to restore the project do: # tar xzPf %s%s.tar.gz" % (destdir, project['project.name']))
+
+*/

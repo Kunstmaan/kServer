@@ -1,5 +1,6 @@
 projects:
-    path: "/var/www"
+    path:       "/var/www"
+    backuppath: "/var/backup"
 
 permissions:
     develmode:  false
