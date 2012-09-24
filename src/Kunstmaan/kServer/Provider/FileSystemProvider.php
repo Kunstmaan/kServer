@@ -4,6 +4,7 @@ namespace Kunstmaan\kServer\Provider;
 use Cilex\ServiceProviderInterface;
 use Symfony\Component\Finder\Finder;
 use Cilex\Application;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class FileSystemProvider implements ServiceProviderInterface
 {
@@ -37,19 +38,14 @@ class FileSystemProvider implements ServiceProviderInterface
         return $finder->count() != 0;
     }
 
-    /**
-     * @param $projectname
-     * @return string
-     */
+
     public function getProjectDirectory($projectname){
         return $this->app["config"]["projects"]["path"] . '/' . $projectname;
     }
 
-    /**
-     * @param $projectname
-     */
-    public function createProjectDirectory($projectname){
-        $this->app["process"]->executeCommand(array('mkdir', '-p', $this->getProjectDirectory($projectname)));
+    public function createProjectDirectory($projectname, OutputInterface $output){
+        $projectDirectory = $this->getProjectDirectory($projectname);
+        $this->app["process"]->executeCommand(array('mkdir', '-p', $projectDirectory), $output);
     }
 }
 

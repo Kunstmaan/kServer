@@ -8,5 +8,6 @@ $app->register(new \Cilex\Provider\ConfigServiceProvider(), array('config.path' 
 $app->register(new \Kunstmaan\kServer\Provider\FileSystemProvider());
 $app->register(new \Kunstmaan\kServer\Provider\ProcessProvider());
 $app->register(new \Kunstmaan\kServer\Provider\SkeletonProvider());
+$app->register(new \Kunstmaan\kServer\Provider\ProjectConfigProvider());
 $app->command(new \Kunstmaan\kServer\Command\NewProjectCommand());
 $app->run();

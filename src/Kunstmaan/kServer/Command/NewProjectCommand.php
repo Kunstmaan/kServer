@@ -7,8 +7,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Cilex\Command\Command;
-
+use Kunstmaan\kServer\Provider\SkeletonProvider;
 use Kunstmaan\kServer\Provider\FileSystemProvider;
+use Kunstmaan\kServer\Provider\ProjectConfigProvider;
 
 class NewProjectCommand extends Command
 {
@@ -28,26 +29,23 @@ class NewProjectCommand extends Command
     {
         /** @var $filesystem FileSystemProvider */
         $filesystem = $this->getService('filesystem');
+        /** @var $skeleton SkeletonProvider */
+        $skeleton = $this->getService('skeleton');
+        /** @var $projectConfig ProjectConfigProvider */
+        $projectConfig = $this->getService('projectconfig');
+
         $projectname = $input->getArgument('name');
+
+        // Check if the project exists, do use in creating a new one with the same name.
         if ($filesystem->projectExists($projectname)){
             throw new RuntimeException("A project with name $projectname already exists!");
         }
+
         $output->writeln("<info> ---> Creating project $projectname</info>");
-        $filesystem->createProjectDirectory($projectname);
-
-
-
-
-
-        $text = 'Hello';
-        $name = $projectname;
-        if ($name) {
-            $text .= ' '.$name;
-        }
-
-
-
-        $output->writeln($text);
+        $filesystem->createProjectDirectory($projectname, $output);
+        $project = $projectConfig->createNewProjectConfig($projectname, $output);
+        $skeleton->applySkeleton($project, "base", $output);
+        $project->writeConfig($output);
     }
 }
 
