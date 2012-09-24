@@ -103,4 +103,21 @@ class PermissionsProvider implements ServiceProviderInterface
             $process->executeCommand('chown ' . $pd->getOwnership() . ' ' . $filesystem->getProjectDirectory($project->getName()) . $pd->getPath() , $output);
         }
     }
+
+    public function applyPermissions(Project $project, OutputInterface $output){
+        /** @var $process ProcessProvider */
+        $process = $this->app["process"];
+        /** @var $filesystem FileSystemProvider */
+        $filesystem = $this->app['filesystem'];
+        if($this->app["config"]["permissions"]["develmode"]){
+            $process->executeCommand('chmod -R 777 ' . $filesystem->getProjectDirectory($project->getName()) , $output);
+            $process->executeCommand('chmod -R 700 ' . $filesystem->getProjectDirectory($project->getName()). '/.ssh/' , $output);
+        } else {
+            foreach($project->getPermissionDefinitions() as $pd){
+                foreach($pd->getAcl() as $acl){
+                    $process->executeCommand('setfacl ' . $acl . ' ' . $filesystem->getProjectDirectory($project->getName()) . $pd->getPath() , $output);
+                }
+            }
+        }
+    }
 }

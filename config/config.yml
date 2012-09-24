@@ -1,5 +1,5 @@
 projects:
     path: "/var/www"
 
-skeletons:
-    path: "skeletons"
+permissions:
+    develmode:  false
