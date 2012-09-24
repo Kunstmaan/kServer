@@ -2,8 +2,18 @@
 
 export DEBIAN_FRONTEND=noninteractive
 
-yes | apt-get -y -q install php5-fpm php5-mysqlnd php5-mcrypt php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev
 
+echo "##### Setting up ACL"
+
+yes | apt-get -y -q install acl
+cat /etc/fstab | grep -v precise64-root > /etc/fstab.tmp
+cat /etc/fstab | grep precise64-root | sed "s/remount-ro/remount-ro,acl/" >> /etc/fstab.tmp
+mv /etc/fstab.tmp /etc/fstab
+mount -a
+
+echo "##### Installing PHP"
+
+yes | apt-get -y -q install php5-fpm php5-mysqlnd php5-mcrypt php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev
 
 echo "##### Configuring GIT"
 
@@ -23,12 +33,7 @@ chmod 440 /etc/sudoers.d/env
 
 echo "##### Create hosting folders"
 
-addgroup kserver
-adduser root kserver
-adduser vagrant kserver
 mkdir -p /var/www
-chown root:kserver /var/www/
-chmod 775 /var/www
 
 echo "##### Adding some costom development settings"
 cd /tmp/

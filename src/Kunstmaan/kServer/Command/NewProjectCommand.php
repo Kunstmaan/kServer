@@ -15,15 +15,12 @@ use Kunstmaan\kServer\Provider\ProjectConfigProvider;
 class NewProjectCommand extends Command
 {
 
-
     protected function configure()
     {
         $this
             ->setName('newproject')
             ->setDescription('Create a new kServer project')
             ->addArgument('name', InputArgument::REQUIRED, 'The name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive');
-
-
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

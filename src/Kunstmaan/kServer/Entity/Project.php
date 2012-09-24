@@ -3,6 +3,8 @@ namespace Kunstmaan\kServer\Entity;
 
 
 use Symfony\Component\Yaml\Dumper;
+use Symfony\Component\Yaml\Yaml;
+use Symfony\Component\Yaml\Parser;
 use Kunstmaan\kServer\Skeleton\SkeletonInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -31,6 +33,8 @@ class Project
     {
         $this->name = $name;
         $this->configPath = $configPath;
+
+
     }
 
     public function addPermissionDefinition(PermissionDefinition $pd)
@@ -95,4 +99,11 @@ class Project
         file_put_contents($this->getConfigPath(), $yaml);
     }
 
+    public function loadConfig(OutputInterface $output){
+        $output->writeln("<comment>      > Loading the project config from ".$this->getConfigPath()."</comment>");
+        $config = Yaml::parse($this->getConfigPath());
+        foreach( $config["kserver"]["dependencies"] as $dep){
+            $this->addDependency(new $dep);
+        }
+    }
 }

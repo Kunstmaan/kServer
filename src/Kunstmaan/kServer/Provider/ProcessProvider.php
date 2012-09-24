@@ -3,6 +3,7 @@
 namespace Kunstmaan\kServer\Provider;
 
 use Cilex\ServiceProviderInterface;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Symfony\Component\Process\ProcessBuilder;
@@ -20,13 +21,15 @@ class ProcessProvider  implements ServiceProviderInterface
         $app['process'] = $this;
     }
 
-    public function executeCommand($commandarray, OutputInterface $output){
-        $output->writeln("<comment>      $ " . implode(" ", $commandarray) . "</comment>");
-        $builder = new ProcessBuilder($commandarray);
-        $process = $builder->getProcess();
+    public function executeCommand($command, OutputInterface $output, $silent=false){
+        $output->writeln("<comment>      $ " . $command . "</comment>");
+        $process = new Process($command);
         $process->run();
         if (!$process->isSuccessful()) {
-            throw new RuntimeException($process->getErrorOutput());
+            if (!$silent){
+                $output->writeln("<error>      " . $process->getErrorOutput() . "</error>");
+            }
+            return false;
         }
         return $process->getOutput();
     }

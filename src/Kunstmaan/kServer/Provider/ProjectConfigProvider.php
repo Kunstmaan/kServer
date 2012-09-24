@@ -35,4 +35,13 @@ class ProjectConfigProvider  implements ServiceProviderInterface
         return $project;
     }
 
+    public function loadProjectConfig($projectname, OutputInterface $output){
+        /** @var $filesystem FileSystemProvider */
+        $filesystem = $this->app['filesystem'];
+        $projectpath = $filesystem->getProjectDirectory($projectname);
+        $project = new Project($projectname, $projectpath . '/config/project.yml');
+        $project->loadConfig($output);
+        return $project;
+    }
+
 }
