@@ -25,43 +25,47 @@ class PermissionsProvider implements ServiceProviderInterface
 
     public function createGroupIfNeeded($groupname, OutputInterface $output){
         if (! $this->isGroup($groupname, $output)){
+            $process = $this->app["process"];
             if (PHP_OS == "Darwin"){
-                $this->app["process"]->executeCommand('dscl . create /groups/'.$groupname, $output);
-                $this->app["process"]->executeCommand('dscl . create /groups/'.$groupname. " name ". $groupname, $output);
-                $this->app["process"]->executeCommand('dscl . create /groups/'.$groupname.' passwd "*"', $output);
+                $process->executeCommand('dscl . create /groups/'.$groupname, $output);
+                $process->executeCommand('dscl . create /groups/'.$groupname. " name ". $groupname, $output);
+                $process->executeCommand('dscl . create /groups/'.$groupname.' passwd "*"', $output);
             } else {
-                $this->app["process"]->executeCommand('addgroup '.$groupname, $output);
+                $process->executeCommand('addgroup '.$groupname, $output);
             }
         }
     }
 
     private function isGroup($groupname, OutputInterface $output){
+        $process = $this->app["process"];
         if (PHP_OS == "Darwin"){
-            return $this->app["process"]->executeCommand('dscl . -list /groups | grep ^'.$groupname.'$', $output, true);
+            return $process->executeCommand('dscl . -list /groups | grep ^'.$groupname.'$', $output, true);
         } else {
-            return $this->app["process"]->executeCommand('cat /etc/group | egrep ^'.$groupname.':', $output, true);
+            return $process->executeCommand('cat /etc/group | egrep ^'.$groupname.':', $output, true);
         }
     }
 
     public function createUserIfNeeded($username, $groupname, OutputInterface $output){
         if (! $this->isUser($username, $output)){
+            $process = $this->app["process"];
             if (PHP_OS == "Darwin"){
-			    $maxid = $this->app["process"]->executeCommand("dscl . list /Users UniqueID | awk '{print $2}' | sort -ug | tail -1");
+			    $maxid = $process->executeCommand("dscl . list /Users UniqueID | awk '{print $2}' | sort -ug | tail -1");
 			    $maxid = $maxid + 1;
-			    $this->app["process"]->executeCommand('dscl . create /Users/'.$username, $output);
-			    $this->app["process"]->executeCommand('dscl . create /Users/'.$username.' UserShell /bin/bash', $output);
-			    $this->app["process"]->executeCommand('dscl . create /Users/'.$username.' NFSHomeDirectory /var/www/'.$username, $output);
-			    $this->app["process"]->executeCommand('dscl . create /Users/'.$username.' PrimaryGroupID 20', $output);
-			    $this->app["process"]->executeCommand('dscl . create /Users/'.$username.' UniqueID ' . $maxid, $output);
-			    $this->app["process"]->executeCommand('dscl . append /Groups/'.$groupname.' GroupMembership '.$username, $output);
-			    $this->app["process"]->executeCommand('defaults write /Library/Preferences/com.apple.loginwindow HiddenUsersList -array-add '.$username, $output);
+			    $process->executeCommand('dscl . create /Users/'.$username, $output);
+			    $process->executeCommand('dscl . create /Users/'.$username.' UserShell /bin/bash', $output);
+			    $process->executeCommand('dscl . create /Users/'.$username.' NFSHomeDirectory /var/www/'.$username, $output);
+			    $process->executeCommand('dscl . create /Users/'.$username.' PrimaryGroupID 20', $output);
+			    $process->executeCommand('dscl . create /Users/'.$username.' UniqueID ' . $maxid, $output);
+			    $process->executeCommand('dscl . append /Groups/'.$groupname.' GroupMembership '.$username, $output);
+			    $process->executeCommand('defaults write /Library/Preferences/com.apple.loginwindow HiddenUsersList -array-add '.$username, $output);
             } else {
-                $this->app["process"]->executeCommand('adduser --firstuid 1000 --lastuid 1999 --disabled-password --system --quiet --ingroup '.$groupname.' --home "/var/www/'.$username.'" --no-create-home --shell /bin/bash '.$username, $output);
+                $process->executeCommand('adduser --firstuid 1000 --lastuid 1999 --disabled-password --system --quiet --ingroup '.$groupname.' --home "/var/www/'.$username.'" --no-create-home --shell /bin/bash '.$username, $output);
             }
         }
     }
 
     private function isUser($username, OutputInterface $output){
-        return $this->app["process"]->executeCommand('id '.$username, $output, true);
+        $process = $this->app["process"];
+        return $process->executeCommand('id '.$username, $output, true);
     }
 }
