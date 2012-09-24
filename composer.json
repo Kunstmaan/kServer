@@ -1,0 +1,23 @@
+{
+    "name":        "kunstmaan/kserver",
+    "description": "The scripts for the Kunstmaan hosting platform",
+    "keywords":    ["deployment","cli", "hosting"],
+    "homepage":    "http://www.kunstmaan.be",
+    "license":     "MIT",
+    "authors":[
+        {
+            "name":  "Roderik van der Veer",
+            "email": "roderik.van.der.veer@kunstmaan.be"
+        }
+    ],
+    "require":{
+        "php":                  ">=5.3.3",
+        "cilex/cilex":          "1.0.x-dev",
+        "symfony/yaml":         ">=1.0.0"
+    },
+    "autoload":{
+        "psr-0":{
+            "Kunstmaan": "src/"
+        }
+    }
+}

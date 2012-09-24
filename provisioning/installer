@@ -1,0 +1,38 @@
+#!/bin/bash
+
+export DEBIAN_FRONTEND=noninteractive
+
+yes | apt-get -y -q install php5-fpm php5-mysqlnd php5-mcrypt php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev
+
+
+echo "##### Configuring GIT"
+
+yes | apt-get -y -q install git
+
+if cat /etc/ssh/ssh_config | grep github.com; then
+    echo "Not updating ssh_config, already done"
+else
+    echo "Host github.com" >> /etc/ssh/ssh_config
+    echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config
+    echo "Host *.kunstmaan.be" >> /etc/ssh/ssh_config
+    echo "    User $USER" >> /etc/ssh/ssh_config
+fi
+
+echo "Defaults        env_keep+=SSH_AUTH_SOCK" > /etc/sudoers.d/env
+chmod 440 /etc/sudoers.d/env
+
+echo "##### Create hosting folders"
+
+addgroup kserver
+adduser root kserver
+adduser vagrant kserver
+mkdir -p /var/www
+chown root:kserver /var/www/
+chmod 775 /var/www
+
+echo "##### Adding some costom development settings"
+cd /tmp/
+git clone https://github.com/roderik/dotfiles.git
+cd /tmp/dotfiles
+rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" --exclude "README.md" -av . /root/
+rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" --exclude "README.md" -av . /home/vagrant
