@@ -26,10 +26,6 @@ class ProjectConfigProvider  implements ServiceProviderInterface
         $this->app = $app;
     }
 
-    /**
-     * @param $projectpath
-     * @return \Kunstmaan\kServer\Entity\Project
-     */
     public function createNewProjectConfig($projectname, OutputInterface $output){
         /** @var $filesystem FileSystemProvider */
         $filesystem = $this->app['filesystem'];

@@ -3,6 +3,7 @@
 namespace Kunstmaan\kServer\Provider;
 
 use Cilex\ServiceProviderInterface;
+use Kunstmaan\kServer\Skeleton\SkeletonInterface;
 use Kunstmaan\kServer\Entity\Project;
 use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
@@ -27,9 +28,9 @@ class SkeletonProvider  implements ServiceProviderInterface
         $this->app = $app;
     }
 
-    function applySkeleton(Project $project, $skeleton, OutputInterface $output){
-        $output->writeln("<comment>      > Applying $skeleton to ".$project->getName()." </comment>");
-
+    function applySkeleton(Project $project, SkeletonInterface $skeleton, OutputInterface $output){
+        $output->writeln("<comment>      > Applying ". get_class($skeleton) . " to ".$project->getName()." </comment>");
+        $skeleton->create($this->app, $project, $output);
     }
 
 }

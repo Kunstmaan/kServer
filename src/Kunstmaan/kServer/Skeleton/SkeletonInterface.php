@@ -6,9 +6,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Cilex\Application;
 use Kunstmaan\kServer\Entity\Project;
 
-interface CreationInterface
+interface SkeletonInterface
 {
 
+    public function getName();
     public function create(Application $app, Project $project, OutputInterface $output);
 
 }

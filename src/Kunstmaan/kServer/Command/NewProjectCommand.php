@@ -2,6 +2,7 @@
 namespace Kunstmaan\kServer\Command;
 
 use Symfony\Component\Console\Input\InputArgument;
+use Kunstmaan\kServer\Skeleton\BaseSkeleton;
 use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -44,37 +45,7 @@ class NewProjectCommand extends Command
         $output->writeln("<info> ---> Creating project $projectname</info>");
         $filesystem->createProjectDirectory($projectname, $output);
         $project = $projectConfig->createNewProjectConfig($projectname, $output);
-        $skeleton->applySkeleton($project, "base", $output);
+        $skeleton->applySkeleton($project, new BaseSkeleton(), $output);
         $project->writeConfig($output);
     }
 }
-
-/**
- * globalConfig = smllib.projectinformation.getBaseInformation()
-p = Information(None)
-p.mergeWith(globalConfig)
-
-
-
-p.queryUser("project.name")
-
-p.queryUser("project.dir")
-p.queryUser("project.user")
-p.queryUser("project.group")
-
-
-p.bindXML("%s/conf/config.xml" % (p["project.dir"]))
-skeletonName = "base"
-skc = SkeletonCopier(skeletonName, p["config.skeletonsdir"]+"/" + skeletonName , p["project.dir"])
-skc.performAction(p)
-p.save()
-actionok()
-
-action("Sending log to admin")
-smllib.postman.getThePostman().send("Project Creation: %s" % p['project.name'])
-actionok()
-
-D("Now start applying skeletons to your project with applyskel.py.", 0)
-
-smllib.aspn.unlock()
- */

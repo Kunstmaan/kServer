@@ -3,6 +3,7 @@ namespace Kunstmaan\kServer\Entity;
 
 
 use Symfony\Component\Yaml\Dumper;
+use Kunstmaan\kServer\Skeleton\SkeletonInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Project
@@ -27,9 +28,9 @@ class Project
         return $this->name;
     }
 
-    public function addDependencie($skeleton)
+    public function addDependency(SkeletonInterface $skeleton)
     {
-        $this->dependencies["$skeleton"] = $skeleton;
+        $this->dependencies[$skeleton->getName()] = get_class($skeleton);
     }
 
     public function getDependencies()
