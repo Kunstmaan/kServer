@@ -33,16 +33,16 @@ class BackupCommand extends Command
             if (isset($onlyprojectname) && $projectname != $onlyprojectname){
                 continue;
             }
-            $output->writeln("<info> ---> Running preBackup on project $projectname</info>");
+            $output->writeln("<info> ---> Running backup on project $projectname</info>");
             $project = $projectConfig->loadProjectConfig($projectname, $output);
             foreach($project->getDependencies() as $skeletonName => $skeletonClass){
-                $output->writeln("<comment>      > Running maintenance of the $skeletonName skeleton</comment>");
+                $output->writeln("<comment>      > Running preBackup of the $skeletonName skeleton</comment>");
                 $skeleton = new $skeletonClass;
                 $skeleton->preBackup($this->getContainer(), $project, $output);
             }
             $filesystem->runTar($project, $output);
             foreach($project->getDependencies() as $skeletonName => $skeletonClass){
-                $output->writeln("<comment>      > Running maintenance of the $skeletonName skeleton</comment>");
+                $output->writeln("<comment>      > Running postBackup of the $skeletonName skeleton</comment>");
                 $skeleton = new $skeletonClass;
                 $skeleton->postBackup($this->getContainer(), $project, $output);
             }

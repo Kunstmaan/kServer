@@ -65,8 +65,7 @@ class FileSystemProvider implements ServiceProviderInterface
                 $excluded = $excluded . " --exclude='".$excl."'";
             }
         }
-        $stats = $this->app["process"]->executeCommand('nice -n 19 tar --create --absolute-names '.$excluded.' --file '.$this->app["config"]["projects"]["backuppath"].'/'.$project->getName().'.tar.gz --totals --gzip '.$projectDirectory.'/ 2>&1', $output);
-        $output->writeln("<info>      > Tar created! ". $stats . "</info>");
+        $this->app["process"]->executeCommand('nice -n 19 tar --create --absolute-names '.$excluded.' --file '.$this->app["config"]["projects"]["backuppath"].'/'.$project->getName().'.tar.gz --totals --gzip '.$projectDirectory.'/ 2>&1', $output);
     }
 }
 /*
