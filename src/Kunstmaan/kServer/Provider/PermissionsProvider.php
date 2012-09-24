@@ -5,6 +5,8 @@ use Cilex\ServiceProviderInterface;
 use Kunstmaan\kServer\Entity\Project;
 use Symfony\Component\Finder\Finder;
 use Cilex\Application;
+use Kunstmaan\kServer\Provider\FileSystemProvider;
+use Kunstmaan\kServer\Provider\ProcessProvider;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class PermissionsProvider implements ServiceProviderInterface
@@ -23,6 +25,10 @@ class PermissionsProvider implements ServiceProviderInterface
         $this->app = $app;
     }
 
+    /**
+     * @param $groupname
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
     public function createGroupIfNeeded($groupname, OutputInterface $output){
         if (! $this->isGroup($groupname, $output)){
             $process = $this->app["process"];
@@ -36,6 +42,11 @@ class PermissionsProvider implements ServiceProviderInterface
         }
     }
 
+    /**
+     * @param $groupname
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return mixed
+     */
     private function isGroup($groupname, OutputInterface $output){
         $process = $this->app["process"];
         if (PHP_OS == "Darwin"){
@@ -45,6 +56,11 @@ class PermissionsProvider implements ServiceProviderInterface
         }
     }
 
+    /**
+     * @param $username
+     * @param $groupname
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
     public function createUserIfNeeded($username, $groupname, OutputInterface $output){
         if (! $this->isUser($username, $output)){
             $process = $this->app["process"];
@@ -64,8 +80,27 @@ class PermissionsProvider implements ServiceProviderInterface
         }
     }
 
+    /**
+     * @param $username
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return mixed
+     */
     private function isUser($username, OutputInterface $output){
         $process = $this->app["process"];
         return $process->executeCommand('id '.$username, $output, true);
+    }
+
+    /**
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
+    public function applyOwnership(Project $project, OutputInterface $output){
+        /** @var $process ProcessProvider */
+        $process = $this->app["process"];
+        /** @var $filesystem FileSystemProvider */
+        $filesystem = $this->app['filesystem'];
+        foreach($project->getPermissionDefinitions() as $pd){
+            $process->executeCommand('chown ' . $pd->getOwnership() . ' ' . $filesystem->getProjectDirectory($project->getName()) . $pd->getPath() , $output);
+        }
     }
 }

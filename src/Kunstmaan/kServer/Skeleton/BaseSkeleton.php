@@ -38,7 +38,7 @@ class BaseSkeleton implements SkeletonInterface
         $permissionDefinition = new PermissionDefinition();
         $permissionDefinition->setName("root");
         $permissionDefinition->setPath("/");
-        $permissionDefinition->setOwnership('-R $superuser.$group');
+        $permissionDefinition->setOwnership("-R root." . $project->getName());
         $permissionDefinition->addAcl("-R -m user::rw-");
         $permissionDefinition->addAcl("-R -m group::---");
         $permissionDefinition->addAcl("-R -m other::---");
@@ -50,6 +50,7 @@ class BaseSkeleton implements SkeletonInterface
         $permission = $app["permission"];
         $permission->createGroupIfNeeded($project->getName(), $output);
         $permission->createUserIfNeeded($project->getName(), $project->getName() , $output);
+        $permission->applyOwnership($project, $output);
     }
 
 }

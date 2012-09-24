@@ -39,7 +39,7 @@ class FileSystemProvider implements ServiceProviderInterface
 
     public function createProjectDirectory($projectname, OutputInterface $output){
         $projectDirectory = $this->getProjectDirectory($projectname);
-        $this->app["process"]->executeCommand('mkdir -p' . $projectDirectory, $output);
+        $this->app["process"]->executeCommand('mkdir -p ' . $projectDirectory, $output);
     }
 
     public function createProjectConfigDirectory(Project $project, OutputInterface $output){

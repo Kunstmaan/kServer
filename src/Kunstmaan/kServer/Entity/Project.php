@@ -105,5 +105,15 @@ class Project
         foreach( $config["kserver"]["dependencies"] as $dep){
             $this->addDependency(new $dep);
         }
+        foreach( $config["kserver"]["permissions"] as $name => $pdarr){
+            $pd = new PermissionDefinition();
+            $pd->setName($name);
+            $pd->setPath($pdarr['path']);
+            $pd->setOwnership($pdarr['ownership']);
+            foreach( $pdarr["acl"] as $acl){
+                $pd->addAcl($acl);
+            }
+            $this->addPermissionDefinition($pd);
+        }
     }
 }
