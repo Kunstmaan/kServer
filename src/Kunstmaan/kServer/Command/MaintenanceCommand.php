@@ -25,6 +25,8 @@ class MaintenanceCommand extends kServerCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->prepareProviders();
+
         $projects = $this->filesystem->getProjects();
         foreach ($projects as $project) {
             $projectname = $project->getFilename();

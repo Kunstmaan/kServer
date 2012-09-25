@@ -133,4 +133,32 @@ class PermissionsProvider implements ServiceProviderInterface
             }
         }
     }
+
+    /**
+     * @param $username
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
+    public function killProcesses($username, OutputInterface $output){
+        /** @var $process ProcessProvider */
+        $process = $this->app["process"];
+        $process->executeCommand("su - ".$username." -c 'kill -9 -1'",$output, true);
+    }
+
+    /**
+     * @param $username
+     * @param $groupname
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
+    public function removeUser($username, $groupname, OutputInterface $output)
+    {
+        if ($this->isUser($username, $output)) {
+            $process = $this->app["process"];
+            if (PHP_OS == "Darwin") {
+                $process->executeCommand('dscl . delete /Users/' . $username, $output);
+                $process->executeCommand('dscl . delete /Groups/' . $groupname, $output);
+            } else {
+                $process->executeCommand('userdel ' . $username, $output);
+            }
+        }
+    }
 }

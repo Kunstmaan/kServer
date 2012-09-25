@@ -22,6 +22,8 @@ class SetPermissionsCommand extends kServerCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->prepareProviders();
+
         $projectname = $input->getArgument('name');
 
         if (!$this->filesystem->projectExists($projectname)) {

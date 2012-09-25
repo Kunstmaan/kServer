@@ -16,9 +16,8 @@ class BackupCommand extends kServerCommand
         $this
             ->setName('backup')
             ->setDescription('Run backup on all or one projects')
-            ->addArgument('project', InputArgument::OPTIONAL, 'If set, the task will only backup the project named');
-
-        $this->prepareProviders();
+            ->addArgument('project', InputArgument::OPTIONAL, 'If set, the task will only backup the project named')
+            ->addOption("quick", null, InputArgument::OPTIONAL, 'If set, no tar.gz file will be created, only the preBackup and postBackup hooks will be executed.');
     }
 
     /**
@@ -28,6 +27,8 @@ class BackupCommand extends kServerCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->prepareProviders();
+
         $onlyprojectname = $input->getArgument('project');
 
         // Loop over all the projects to run the backup
@@ -50,8 +51,10 @@ class BackupCommand extends kServerCommand
                 $skeleton->preBackup($this->getContainer(), $project, $output);
             }
 
-            // Create the tar.gz file of the project directory
-            $this->filesystem->runTar($project, $output);
+            if (!$input->getOption('quick')) {
+                // Create the tar.gz file of the project directory
+                $this->filesystem->runTar($project, $output);
+            }
 
             // Run the postBackup hook for all dependencies
             foreach ($project->getDependencies() as $skeletonName => $skeletonClass) {

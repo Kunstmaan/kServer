@@ -15,14 +15,16 @@ class NewProjectCommand extends kServerCommand
     protected function configure()
     {
         $this
-            ->setName('newproject')
+            ->setName('new')
             ->setDescription('Create a new kServer project')
-            ->addArgument('name', InputArgument::REQUIRED, 'The name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive');
+            ->addArgument('name', InputArgument::OPTIONAL, 'The name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $projectname = $input->getArgument('name');
+        $this->prepareProviders();
+
+        $projectname = $this->askForProjectName('name', $input, $output);
 
         // Check if the project exists, do use in creating a new one with the same name.
         if ($this->filesystem->projectExists($projectname)) {

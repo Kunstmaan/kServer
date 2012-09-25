@@ -13,5 +13,6 @@ $app->command(new \Kunstmaan\kServer\Command\NewProjectCommand());
 $app->command(new \Kunstmaan\kServer\Command\SetPermissionsCommand());
 $app->command(new \Kunstmaan\kServer\Command\MaintenanceCommand());
 $app->command(new \Kunstmaan\kServer\Command\BackupCommand());
+$app->command(new \Kunstmaan\kServer\Command\RemoveProjectCommand());
 
 $app->run();

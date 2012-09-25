@@ -86,5 +86,24 @@ class BaseSkeleton implements SkeletonInterface
     {
     }
 
+    /**
+     * @param \Cilex\Application $app
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
+    public function preRemove(Application $app, Project $project, OutputInterface $output)
+    {
+    }
 
+    /**
+     * @param \Cilex\Application $app
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
+    public function postRemove(Application $app, Project $project, OutputInterface $output)
+    {
+        /** @var $permission PermissionsProvider */
+        $permission = $app["permission"];
+        $permission->removeUser($project->getName(), $project->getName(), $output);
+    }
 }

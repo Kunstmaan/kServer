@@ -47,23 +47,39 @@ class FileSystemProvider implements ServiceProviderInterface
         return $finder->count() != 0;
     }
 
+    /**
+     * @param $projectname
+     * @return string
+     */
     public function getProjectDirectory($projectname)
     {
         return $this->app["config"]["projects"]["path"] . '/' . $projectname;
     }
 
+    /**
+     * @param $projectname
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
     public function createProjectDirectory($projectname, OutputInterface $output)
     {
         $projectDirectory = $this->getProjectDirectory($projectname);
         $this->app["process"]->executeCommand('mkdir -p ' . $projectDirectory, $output);
     }
 
+    /**
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
     public function createProjectConfigDirectory(Project $project, OutputInterface $output)
     {
         $projectDirectory = $this->getProjectDirectory($project->getName());
         $this->app["process"]->executeCommand('mkdir -p ' . $projectDirectory . '/config', $output);
     }
 
+    /**
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
     public function runTar(Project $project, OutputInterface $output)
     {
         $this->app["process"]->executeCommand('mkdir -p ' . $this->app["config"]["projects"]["backuppath"], $output);
@@ -75,5 +91,15 @@ class FileSystemProvider implements ServiceProviderInterface
             }
         }
         $this->app["process"]->executeCommand('nice -n 19 tar --create --absolute-names ' . $excluded . ' --file ' . $this->app["config"]["projects"]["backuppath"] . '/' . $project->getName() . '.tar.gz --totals --gzip ' . $projectDirectory . '/ 2>&1', $output);
+    }
+
+    /**
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
+    public function removeProjectDirectory(Project $project, OutputInterface $output)
+    {
+        $projectDirectory = $this->getProjectDirectory($project->getName());
+        $this->app["process"]->executeCommand("rm -Rf " . $projectDirectory, $output);
     }
 }
