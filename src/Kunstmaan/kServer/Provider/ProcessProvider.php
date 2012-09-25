@@ -6,10 +6,9 @@ use Cilex\ServiceProviderInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
-use Symfony\Component\Process\ProcessBuilder;
 use Cilex\Application;
 
-class ProcessProvider  implements ServiceProviderInterface
+class ProcessProvider implements ServiceProviderInterface
 {
     /**
      * Registers services on the given app.
@@ -21,12 +20,19 @@ class ProcessProvider  implements ServiceProviderInterface
         $app['process'] = $this;
     }
 
-    public function executeCommand($command, OutputInterface $output, $silent=false){
+    /**
+     * @param $command
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param bool $silent
+     * @return bool|string
+     */
+    public function executeCommand($command, OutputInterface $output, $silent = false)
+    {
         $output->writeln("<comment>      $ " . $command . "</comment>");
         $process = new Process($command);
         $process->run();
         if (!$process->isSuccessful()) {
-            if (!$silent){
+            if (!$silent) {
                 $output->writeln("<error>      " . $process->getErrorOutput() . "</error>");
             }
             return false;

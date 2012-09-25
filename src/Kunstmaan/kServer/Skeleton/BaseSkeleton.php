@@ -10,11 +10,14 @@ use Kunstmaan\kServer\Provider\FileSystemProvider;
 use Kunstmaan\kServer\Provider\PermissionsProvider;
 
 
-
 class BaseSkeleton implements SkeletonInterface
 {
 
-    public function getName(){
+    /**
+     * @return string
+     */
+    public function getName()
+    {
         return "base";
     }
 
@@ -44,11 +47,12 @@ class BaseSkeleton implements SkeletonInterface
      * @param \Kunstmaan\kServer\Entity\Project $project
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
-    public function permissions(Application $app, Project $project, OutputInterface $output){
+    public function permissions(Application $app, Project $project, OutputInterface $output)
+    {
         /** @var $permission PermissionsProvider */
         $permission = $app["permission"];
         $permission->createGroupIfNeeded($project->getName(), $output);
-        $permission->createUserIfNeeded($project->getName(), $project->getName() , $output);
+        $permission->createUserIfNeeded($project->getName(), $project->getName(), $output);
         $permission->applyOwnership($project, $output);
         $permission->applyPermissions($project, $output);
     }
@@ -59,7 +63,8 @@ class BaseSkeleton implements SkeletonInterface
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @return mixed|void
      */
-    public function maintenance(Application $app, Project $project, OutputInterface $output){
+    public function maintenance(Application $app, Project $project, OutputInterface $output)
+    {
         $this->permissions($app, $project, $output);
     }
 

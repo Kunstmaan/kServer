@@ -10,9 +10,12 @@ use Cilex\Application;
 use Kunstmaan\kServer\Provider\FileSystemProvider;
 
 
-class ProjectConfigProvider  implements ServiceProviderInterface
+class ProjectConfigProvider implements ServiceProviderInterface
 {
 
+    /**
+     * @var Application
+     */
     private $app;
 
     /**
@@ -26,7 +29,13 @@ class ProjectConfigProvider  implements ServiceProviderInterface
         $this->app = $app;
     }
 
-    public function createNewProjectConfig($projectname, OutputInterface $output){
+    /**
+     * @param $projectname
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return \Kunstmaan\kServer\Entity\Project
+     */
+    public function createNewProjectConfig($projectname, OutputInterface $output)
+    {
         /** @var $filesystem FileSystemProvider */
         $filesystem = $this->app['filesystem'];
         $projectpath = $filesystem->getProjectDirectory($projectname);
@@ -35,7 +44,13 @@ class ProjectConfigProvider  implements ServiceProviderInterface
         return $project;
     }
 
-    public function loadProjectConfig($projectname, OutputInterface $output){
+    /**
+     * @param $projectname
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return \Kunstmaan\kServer\Entity\Project
+     */
+    public function loadProjectConfig($projectname, OutputInterface $output)
+    {
         /** @var $filesystem FileSystemProvider */
         $filesystem = $this->app['filesystem'];
         $projectpath = $filesystem->getProjectDirectory($projectname);

@@ -12,6 +12,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 class PermissionsProvider implements ServiceProviderInterface
 {
 
+    /**
+     * @var Application
+     */
     private $app;
 
     /**
@@ -29,15 +32,16 @@ class PermissionsProvider implements ServiceProviderInterface
      * @param $groupname
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
-    public function createGroupIfNeeded($groupname, OutputInterface $output){
-        if (! $this->isGroup($groupname, $output)){
+    public function createGroupIfNeeded($groupname, OutputInterface $output)
+    {
+        if (!$this->isGroup($groupname, $output)) {
             $process = $this->app["process"];
-            if (PHP_OS == "Darwin"){
-                $process->executeCommand('dscl . create /groups/'.$groupname, $output);
-                $process->executeCommand('dscl . create /groups/'.$groupname. " name ". $groupname, $output);
-                $process->executeCommand('dscl . create /groups/'.$groupname.' passwd "*"', $output);
+            if (PHP_OS == "Darwin") {
+                $process->executeCommand('dscl . create /groups/' . $groupname, $output);
+                $process->executeCommand('dscl . create /groups/' . $groupname . " name " . $groupname, $output);
+                $process->executeCommand('dscl . create /groups/' . $groupname . ' passwd "*"', $output);
             } else {
-                $process->executeCommand('addgroup '.$groupname, $output);
+                $process->executeCommand('addgroup ' . $groupname, $output);
             }
         }
     }
@@ -47,12 +51,13 @@ class PermissionsProvider implements ServiceProviderInterface
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @return mixed
      */
-    private function isGroup($groupname, OutputInterface $output){
+    private function isGroup($groupname, OutputInterface $output)
+    {
         $process = $this->app["process"];
-        if (PHP_OS == "Darwin"){
-            return $process->executeCommand('dscl . -list /groups | grep ^'.$groupname.'$', $output, true);
+        if (PHP_OS == "Darwin") {
+            return $process->executeCommand('dscl . -list /groups | grep ^' . $groupname . '$', $output, true);
         } else {
-            return $process->executeCommand('cat /etc/group | egrep ^'.$groupname.':', $output, true);
+            return $process->executeCommand('cat /etc/group | egrep ^' . $groupname . ':', $output, true);
         }
     }
 
@@ -61,21 +66,22 @@ class PermissionsProvider implements ServiceProviderInterface
      * @param $groupname
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
-    public function createUserIfNeeded($username, $groupname, OutputInterface $output){
-        if (! $this->isUser($username, $output)){
+    public function createUserIfNeeded($username, $groupname, OutputInterface $output)
+    {
+        if (!$this->isUser($username, $output)) {
             $process = $this->app["process"];
-            if (PHP_OS == "Darwin"){
-			    $maxid = $process->executeCommand("dscl . list /Users UniqueID | awk '{print $2}' | sort -ug | tail -1");
-			    $maxid = $maxid + 1;
-			    $process->executeCommand('dscl . create /Users/'.$username, $output);
-			    $process->executeCommand('dscl . create /Users/'.$username.' UserShell /bin/bash', $output);
-			    $process->executeCommand('dscl . create /Users/'.$username.' NFSHomeDirectory /var/www/'.$username, $output);
-			    $process->executeCommand('dscl . create /Users/'.$username.' PrimaryGroupID 20', $output);
-			    $process->executeCommand('dscl . create /Users/'.$username.' UniqueID ' . $maxid, $output);
-			    $process->executeCommand('dscl . append /Groups/'.$groupname.' GroupMembership '.$username, $output);
-			    $process->executeCommand('defaults write /Library/Preferences/com.apple.loginwindow HiddenUsersList -array-add '.$username, $output);
+            if (PHP_OS == "Darwin") {
+                $maxid = $process->executeCommand("dscl . list /Users UniqueID | awk '{print $2}' | sort -ug | tail -1");
+                $maxid = $maxid + 1;
+                $process->executeCommand('dscl . create /Users/' . $username, $output);
+                $process->executeCommand('dscl . create /Users/' . $username . ' UserShell /bin/bash', $output);
+                $process->executeCommand('dscl . create /Users/' . $username . ' NFSHomeDirectory /var/www/' . $username, $output);
+                $process->executeCommand('dscl . create /Users/' . $username . ' PrimaryGroupID 20', $output);
+                $process->executeCommand('dscl . create /Users/' . $username . ' UniqueID ' . $maxid, $output);
+                $process->executeCommand('dscl . append /Groups/' . $groupname . ' GroupMembership ' . $username, $output);
+                $process->executeCommand('defaults write /Library/Preferences/com.apple.loginwindow HiddenUsersList -array-add ' . $username, $output);
             } else {
-                $process->executeCommand('adduser --firstuid 1000 --lastuid 1999 --disabled-password --system --quiet --ingroup '.$groupname.' --home "/var/www/'.$username.'" --no-create-home --shell /bin/bash '.$username, $output);
+                $process->executeCommand('adduser --firstuid 1000 --lastuid 1999 --disabled-password --system --quiet --ingroup ' . $groupname . ' --home "/var/www/' . $username . '" --no-create-home --shell /bin/bash ' . $username, $output);
             }
         }
     }
@@ -85,22 +91,24 @@ class PermissionsProvider implements ServiceProviderInterface
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @return mixed
      */
-    private function isUser($username, OutputInterface $output){
+    private function isUser($username, OutputInterface $output)
+    {
         $process = $this->app["process"];
-        return $process->executeCommand('id '.$username, $output, true);
+        return $process->executeCommand('id ' . $username, $output, true);
     }
 
     /**
      * @param \Kunstmaan\kServer\Entity\Project $project
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
-    public function applyOwnership(Project $project, OutputInterface $output){
+    public function applyOwnership(Project $project, OutputInterface $output)
+    {
         /** @var $process ProcessProvider */
         $process = $this->app["process"];
         /** @var $filesystem FileSystemProvider */
         $filesystem = $this->app['filesystem'];
-        foreach($project->getPermissionDefinitions() as $pd){
-            $process->executeCommand('chown ' . $pd->getOwnership() . ' ' . $filesystem->getProjectDirectory($project->getName()) . $pd->getPath() , $output);
+        foreach ($project->getPermissionDefinitions() as $pd) {
+            $process->executeCommand('chown ' . $pd->getOwnership() . ' ' . $filesystem->getProjectDirectory($project->getName()) . $pd->getPath(), $output);
         }
     }
 
@@ -108,18 +116,19 @@ class PermissionsProvider implements ServiceProviderInterface
      * @param \Kunstmaan\kServer\Entity\Project $project
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
-    public function applyPermissions(Project $project, OutputInterface $output){
+    public function applyPermissions(Project $project, OutputInterface $output)
+    {
         /** @var $process ProcessProvider */
         $process = $this->app["process"];
         /** @var $filesystem FileSystemProvider */
         $filesystem = $this->app['filesystem'];
-        if($this->app["config"]["permissions"]["develmode"]){
-            $process->executeCommand('chmod -R 777 ' . $filesystem->getProjectDirectory($project->getName()) , $output);
-            $process->executeCommand('chmod -R 700 ' . $filesystem->getProjectDirectory($project->getName()). '/.ssh/' , $output);
+        if ($this->app["config"]["permissions"]["develmode"]) {
+            $process->executeCommand('chmod -R 777 ' . $filesystem->getProjectDirectory($project->getName()), $output);
+            $process->executeCommand('chmod -R 700 ' . $filesystem->getProjectDirectory($project->getName()) . '/.ssh/', $output);
         } else {
-            foreach($project->getPermissionDefinitions() as $pd){
-                foreach($pd->getAcl() as $acl){
-                    $process->executeCommand('setfacl ' . $acl . ' ' . $filesystem->getProjectDirectory($project->getName()) . $pd->getPath() , $output);
+            foreach ($project->getPermissionDefinitions() as $pd) {
+                foreach ($pd->getAcl() as $acl) {
+                    $process->executeCommand('setfacl ' . $acl . ' ' . $filesystem->getProjectDirectory($project->getName()) . $pd->getPath(), $output);
                 }
             }
         }
