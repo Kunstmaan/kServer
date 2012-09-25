@@ -27,6 +27,10 @@ class MySQLSkeleton implements SkeletonInterface
         /** @var $filesystem FileSystemProvider */
         $filesystem = $app["filesystem"];
         $filesystem->createMySQLBackupDirectory($project, $output);
+        $project->setMysqlUser("x");
+        $project->setMysqlPassword("y");
+        $project->setMysqlHost("z");
+        $project->setMysqlPort(1);
     }
 
     /**
@@ -37,6 +41,10 @@ class MySQLSkeleton implements SkeletonInterface
      */
     public function maintenance(Application $app, Project $project, OutputInterface $output)
     {
+        //$pdo = new PDO('mysql:host=example.com;dbname=database', 'user', 'password');
+
+
+
         // TODO: Implement maintenance() method.
     }
 
@@ -84,5 +92,26 @@ class MySQLSkeleton implements SkeletonInterface
         // TODO: Implement postRemove() method.
     }
 
+    /**
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param $config
+     */
+    public function writeConfig(Project $project, &$config){
+        if (!is_null($project->getMysqlUser())) { $config["kserver"]["mysql"]["user"] = $project->getMysqlUser(); }
+        if (!is_null($project->getMysqlPassword())) { $config["kserver"]["mysql"]["password"] = $project->getMysqlPassword(); }
+        if (!is_null($project->getMysqlHost())) { $config["kserver"]["mysql"]["host"] = $project->getMysqlHost(); }
+        if (!is_null($project->getMysqlPort())) { $config["kserver"]["mysql"]["port"] = $project->getMysqlPort(); }
+    }
+
+    /**
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param $config
+     */
+    public function loadConfig(Project $project, &$config){
+        if (isset($config["kserver"]["mysql"]["user"])) { $project->setMysqlUser($config["kserver"]["mysql"]["user"]); }
+        if (isset($config["kserver"]["mysql"]["password"])) { $project->setMysqlPassword($config["kserver"]["mysql"]["password"]); }
+        if (isset($config["kserver"]["mysql"]["host"])) { $project->setMysqlHost($config["kserver"]["mysql"]["host"]); }
+        if (isset($config["kserver"]["mysql"]["port"])) { $project->setMysqlPort($config["kserver"]["mysql"]["port"]); }
+    }
 
 }

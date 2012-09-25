@@ -24,7 +24,7 @@ class NewProjectCommand extends kServerCommand
     {
         $this->prepareProviders();
 
-        $projectname = $this->askForProjectName('name', $input, $output);
+        $projectname = $this->askFor('name', "Please enter the name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive",$input, $output);
 
         // Check if the project exists, do use in creating a new one with the same name.
         if ($this->filesystem->projectExists($projectname)) {

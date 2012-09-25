@@ -61,4 +61,16 @@ interface SkeletonInterface
      * @return mixed
      */
     public function postRemove(Application $app, Project $project, OutputInterface $output);
+
+    /**
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param $config
+     */
+    public function writeConfig(Project $project, &$config);
+
+    /**
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param $config
+     */
+    public function loadConfig(Project $project, &$config);
 }

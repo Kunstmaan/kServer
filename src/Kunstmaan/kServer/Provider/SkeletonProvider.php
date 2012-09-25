@@ -36,6 +36,20 @@ class SkeletonProvider implements ServiceProviderInterface
     function applySkeleton(Project $project, SkeletonInterface $skeleton, OutputInterface $output)
     {
         $output->writeln("<comment>      > Applying " . get_class($skeleton) . " to " . $project->getName() . " </comment>");
+        $project->addDependency($skeleton);
         $skeleton->create($this->app, $project, $output);
+    }
+
+    /**
+     * @param $skeletonname
+     * @return SkeletonInterface
+     * @throws \RuntimeException
+     */
+    function findSkeleton($skeletonname){
+        if(isset($this->app["config"]["skeletons"][$skeletonname])){
+            $skeleton = $this->app["config"]["skeletons"][$skeletonname];
+            return new $skeleton;
+        }
+        throw new RuntimeException("Skeleton not found!");
     }
 }

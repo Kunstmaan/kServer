@@ -54,17 +54,17 @@ abstract class kServerCommand extends Command
      * @return mixed|string
      * @throws \RuntimeException
      */
-    protected function askForProjectName($argumentname, InputInterface $input, OutputInterface $output)
+    protected function askFor($argumentname, $message, InputInterface $input, OutputInterface $output)
     {
-        $projectname = $input->getArgument($argumentname);
-        if (is_null($projectname)) {
+        $name = $input->getArgument($argumentname);
+        if (is_null($name)) {
             /** @var $dialog DialogHelper */
             $dialog = $this->getHelperSet()->get('dialog');
-            $projectname = $dialog->ask($output, '<question>Please enter the name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive: </question>');
+            $name = $dialog->ask($output, '<question>'.$message.': </question>');
         }
-        if (is_null($projectname)) {
-            throw new RuntimeException("A projectname is required, what am I, psychic?");
+        if (is_null($name)) {
+            throw new RuntimeException("A $argumentname is required, what am I, psychic?");
         }
-        return $projectname;
+        return $name;
     }
 }

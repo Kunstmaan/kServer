@@ -55,7 +55,7 @@ class ProjectConfigProvider implements ServiceProviderInterface
         $filesystem = $this->app['filesystem'];
         $projectpath = $filesystem->getProjectDirectory($projectname);
         $project = new Project($projectname, $projectpath . '/config/project.yml');
-        $project->loadConfig($output);
+        $project->loadConfig($this->app["config"]["skeletons"], $output);
         return $project;
     }
 

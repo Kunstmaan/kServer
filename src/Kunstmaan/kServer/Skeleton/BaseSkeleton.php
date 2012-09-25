@@ -32,7 +32,6 @@ class BaseSkeleton implements SkeletonInterface
         /** @var $filesystem FileSystemProvider */
         $filesystem = $app["filesystem"];
         $filesystem->createProjectConfigDirectory($project, $output);
-        $project->addDependency($this);
         $permissionDefinition = new PermissionDefinition();
         $permissionDefinition->setName("root");
         $permissionDefinition->setPath("/");
@@ -111,4 +110,24 @@ class BaseSkeleton implements SkeletonInterface
         $permission = $app["permission"];
         $permission->removeUser($project->getName(), $project->getName(), $output);
     }
+
+    /**
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param $config
+     */
+    public function writeConfig(Project $project, &$config)
+    {
+        // TODO: Implement writeConfig() method.
+    }
+
+    /**
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param $config
+     */
+    public function loadConfig(Project $project, &$config)
+    {
+        // TODO: Implement readConfig() method.
+    }
+
+
 }

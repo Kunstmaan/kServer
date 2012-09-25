@@ -36,6 +36,23 @@ class Project
     private $excludedFromBackup;
 
     /**
+     * @var string
+     */
+    private $mysqlUser;
+    /**
+     * @var string
+     */
+    private $mysqlPassword;
+    /**
+     * @var string
+     */
+    private $mysqlHost;
+    /**
+     * @var int
+     */
+    private $mysqlPort;
+
+    /**
      * @param string $name
      * @param string $configPath
      */
@@ -118,6 +135,72 @@ class Project
     }
 
     /**
+     * @param string $mysqlHost
+     */
+    public function setMysqlHost($mysqlHost)
+    {
+        $this->mysqlHost = $mysqlHost;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMysqlHost()
+    {
+        return $this->mysqlHost;
+    }
+
+    /**
+     * @param string $mysqlPassword
+     */
+    public function setMysqlPassword($mysqlPassword)
+    {
+        $this->mysqlPassword = $mysqlPassword;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMysqlPassword()
+    {
+        return $this->mysqlPassword;
+    }
+
+    /**
+     * @param int $mysqlPort
+     */
+    public function setMysqlPort($mysqlPort)
+    {
+        $this->mysqlPort = $mysqlPort;
+    }
+
+    /**
+     * @return int
+     */
+    public function getMysqlPort()
+    {
+        return $this->mysqlPort;
+    }
+
+    /**
+     * @param string $mysqlUser
+     */
+    public function setMysqlUser($mysqlUser)
+    {
+        $this->mysqlUser = $mysqlUser;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMysqlUser()
+    {
+        return $this->mysqlUser;
+    }
+
+
+
+    /**
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
     public function writeConfig(OutputInterface $output)
@@ -132,6 +215,13 @@ class Project
             $config["kserver"]["permissions"][$pd->getName()]["acl"] = $pd->getAcl();
         }
         $config["kserver"]["backup"]["excluded"] = $this->getExcludedFromBackup();
+
+        foreach($this->getDependencies() as $skeletonclass){
+            /** @var $skeleton SkeletonInterface */
+            $skeleton = new $skeletonclass;
+            $skeleton->writeConfig($this, $config);
+        }
+
         $dumper = new Dumper();
         $yaml = $dumper->dump($config, 5);
         file_put_contents($this->getConfigPath(), $yaml);
@@ -140,10 +230,17 @@ class Project
     /**
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
-    public function loadConfig(OutputInterface $output)
+    public function loadConfig($skeletons, OutputInterface $output)
     {
         $output->writeln("<comment>      > Loading the project config from " . $this->getConfigPath() . "</comment>");
         $config = Yaml::parse($this->getConfigPath());
+
+        foreach($skeletons as $skeletonclass){
+            /** @var $skeleton SkeletonInterface */
+            $skeleton = new $skeletonclass;
+            $skeleton->loadConfig($this, $config);
+        }
+
         foreach ($config["kserver"]["dependencies"] as $dep) {
             $this->addDependency(new $dep);
         }
@@ -152,6 +249,9 @@ class Project
                 $this->addExcludedFromBackup($excluded);
             }
         }
+
+
+
         foreach ($config["kserver"]["permissions"] as $name => $pdarr) {
             $pd = new PermissionDefinition();
             $pd->setName($name);
