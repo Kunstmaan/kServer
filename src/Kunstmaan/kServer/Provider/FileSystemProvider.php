@@ -88,6 +88,17 @@ class FileSystemProvider implements ServiceProviderInterface
      * @param \Kunstmaan\kServer\Entity\Project $project
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
+    public function createMySQLBackupDirectory(Project $project, OutputInterface $output)
+    {
+        $projectDirectory = $this->getProjectDirectory($project->getName());
+        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        $this->process->executeCommand('mkdir -p ' . $projectDirectory . '/backup', $output);
+    }
+
+    /**
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
     public function runTar(Project $project, OutputInterface $output)
     {
         if (is_null($this->process)){ $this->process = $this->app["process"]; }
