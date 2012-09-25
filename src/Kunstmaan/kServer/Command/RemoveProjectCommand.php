@@ -3,12 +3,13 @@ namespace Kunstmaan\kServer\Command;
 
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\ArrayInput;
-use Kunstmaan\kServer\Skeleton\BaseSkeleton;
 use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Cilex\Command\Command;
+use Symfony\Component\Console\Helper\DialogHelper;
+use Kunstmaan\kServer\Skeleton\SkeletonInterface;
 
 class RemoveProjectCommand extends kServerCommand
 {
@@ -32,6 +33,7 @@ class RemoveProjectCommand extends kServerCommand
             throw new RuntimeException("A project with name $projectname does not exist!");
         }
 
+        /** @var $dialog DialogHelper */
         $dialog = $this->getHelperSet()->get('dialog');
         if (!$dialog->askConfirmation($output, '<question>Are you sure you want to remove ' . $projectname . '?</question>', false)) {
             return;
@@ -56,6 +58,7 @@ class RemoveProjectCommand extends kServerCommand
         // Run the preRemove hook for all dependencies
         foreach ($project->getDependencies() as $skeletonName => $skeletonClass) {
             $output->writeln("<comment>      > Running preRemove of the $skeletonName skeleton</comment>");
+            /** @var $skeleton SkeletonInterface */
             $skeleton = new $skeletonClass;
             $skeleton->preRemove($this->getContainer(), $project, $output);
         }
@@ -65,6 +68,7 @@ class RemoveProjectCommand extends kServerCommand
         // Run the postRemove hook for all dependencies
         foreach ($project->getDependencies() as $skeletonName => $skeletonClass) {
             $output->writeln("<comment>      > Running postRemove of the $skeletonName skeleton</comment>");
+            /** @var $skeleton SkeletonInterface */
             $skeleton = new $skeletonClass;
             $skeleton->postRemove($this->getContainer(), $project, $output);
         }

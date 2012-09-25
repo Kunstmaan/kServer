@@ -25,6 +25,7 @@ class BaseSkeleton implements SkeletonInterface
      * @param \Cilex\Application $app
      * @param \Kunstmaan\kServer\Entity\Project $project
      * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return mixed|void
      */
     public function create(Application $app, Project $project, OutputInterface $output)
     {
@@ -72,6 +73,7 @@ class BaseSkeleton implements SkeletonInterface
      * @param \Cilex\Application $app
      * @param \Kunstmaan\kServer\Entity\Project $project
      * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return mixed|void
      */
     public function preBackup(Application $app, Project $project, OutputInterface $output)
     {
@@ -81,6 +83,7 @@ class BaseSkeleton implements SkeletonInterface
      * @param \Cilex\Application $app
      * @param \Kunstmaan\kServer\Entity\Project $project
      * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return mixed|void
      */
     public function postBackup(Application $app, Project $project, OutputInterface $output)
     {
@@ -90,6 +93,7 @@ class BaseSkeleton implements SkeletonInterface
      * @param \Cilex\Application $app
      * @param \Kunstmaan\kServer\Entity\Project $project
      * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return mixed|void
      */
     public function preRemove(Application $app, Project $project, OutputInterface $output)
     {
@@ -99,6 +103,7 @@ class BaseSkeleton implements SkeletonInterface
      * @param \Cilex\Application $app
      * @param \Kunstmaan\kServer\Entity\Project $project
      * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return mixed|void
      */
     public function postRemove(Application $app, Project $project, OutputInterface $output)
     {

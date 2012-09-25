@@ -6,6 +6,7 @@ use Kunstmaan\kServer\Entity\Project;
 use Symfony\Component\Finder\Finder;
 use Cilex\Application;
 use Symfony\Component\Console\Output\OutputInterface;
+use Kunstmaan\kServer\Provider\ProcessProvider;
 
 class FileSystemProvider implements ServiceProviderInterface
 {
@@ -14,6 +15,11 @@ class FileSystemProvider implements ServiceProviderInterface
      * @var Application
      */
     private $app;
+
+    /**
+     * @var ProcessProvider
+     */
+    private $process;
 
     /**
      * Registers services on the given app.
@@ -63,7 +69,8 @@ class FileSystemProvider implements ServiceProviderInterface
     public function createProjectDirectory($projectname, OutputInterface $output)
     {
         $projectDirectory = $this->getProjectDirectory($projectname);
-        $this->app["process"]->executeCommand('mkdir -p ' . $projectDirectory, $output);
+        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        $this->process->executeCommand('mkdir -p ' . $projectDirectory, $output);
     }
 
     /**
@@ -73,7 +80,8 @@ class FileSystemProvider implements ServiceProviderInterface
     public function createProjectConfigDirectory(Project $project, OutputInterface $output)
     {
         $projectDirectory = $this->getProjectDirectory($project->getName());
-        $this->app["process"]->executeCommand('mkdir -p ' . $projectDirectory . '/config', $output);
+        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        $this->process->executeCommand('mkdir -p ' . $projectDirectory . '/config', $output);
     }
 
     /**
@@ -82,7 +90,8 @@ class FileSystemProvider implements ServiceProviderInterface
      */
     public function runTar(Project $project, OutputInterface $output)
     {
-        $this->app["process"]->executeCommand('mkdir -p ' . $this->app["config"]["projects"]["backuppath"], $output);
+        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        $this->process->executeCommand('mkdir -p ' . $this->app["config"]["projects"]["backuppath"], $output);
         $projectDirectory = $this->getProjectDirectory($project->getName());
         $excluded = '';
         if (!is_null($project->getExcludedFromBackup())) {
@@ -90,7 +99,7 @@ class FileSystemProvider implements ServiceProviderInterface
                 $excluded = $excluded . " --exclude='" . $excl . "'";
             }
         }
-        $this->app["process"]->executeCommand('nice -n 19 tar --create --absolute-names ' . $excluded . ' --file ' . $this->app["config"]["projects"]["backuppath"] . '/' . $project->getName() . '.tar.gz --totals --gzip ' . $projectDirectory . '/ 2>&1', $output);
+        $this->process->executeCommand('nice -n 19 tar --create --absolute-names ' . $excluded . ' --file ' . $this->app["config"]["projects"]["backuppath"] . '/' . $project->getName() . '.tar.gz --totals --gzip ' . $projectDirectory . '/ 2>&1', $output);
     }
 
     /**
@@ -100,6 +109,7 @@ class FileSystemProvider implements ServiceProviderInterface
     public function removeProjectDirectory(Project $project, OutputInterface $output)
     {
         $projectDirectory = $this->getProjectDirectory($project->getName());
-        $this->app["process"]->executeCommand("rm -Rf " . $projectDirectory, $output);
+        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        $this->process->executeCommand("rm -Rf " . $projectDirectory, $output);
     }
 }

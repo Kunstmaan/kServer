@@ -4,7 +4,6 @@ namespace Kunstmaan\kServer\Entity;
 
 use Symfony\Component\Yaml\Dumper;
 use Symfony\Component\Yaml\Yaml;
-use Symfony\Component\Yaml\Parser;
 use Kunstmaan\kServer\Skeleton\SkeletonInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -71,7 +70,7 @@ class Project
     }
 
     /**
-     * @param $filenamePattern
+     * @param string $filenamePattern
      */
     public function addExcludedFromBackup($filenamePattern)
     {

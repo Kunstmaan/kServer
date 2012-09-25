@@ -18,6 +18,11 @@ class PermissionsProvider implements ServiceProviderInterface
     private $app;
 
     /**
+     * @var ProcessProvider
+     */
+    private $process;
+
+    /**
      * Registers services on the given app.
      *
      * @param Application $app An Application instance
@@ -35,6 +40,7 @@ class PermissionsProvider implements ServiceProviderInterface
     public function createGroupIfNeeded($groupname, OutputInterface $output)
     {
         if (!$this->isGroup($groupname, $output)) {
+            /** @var $process ProcessProvider */
             $process = $this->app["process"];
             if (PHP_OS == "Darwin") {
                 $process->executeCommand('dscl . create /groups/' . $groupname, $output);
@@ -53,6 +59,7 @@ class PermissionsProvider implements ServiceProviderInterface
      */
     private function isGroup($groupname, OutputInterface $output)
     {
+        /** @var $process ProcessProvider */
         $process = $this->app["process"];
         if (PHP_OS == "Darwin") {
             return $process->executeCommand('dscl . -list /groups | grep ^' . $groupname . '$', $output, true);
@@ -69,9 +76,10 @@ class PermissionsProvider implements ServiceProviderInterface
     public function createUserIfNeeded($username, $groupname, OutputInterface $output)
     {
         if (!$this->isUser($username, $output)) {
+            /** @var $process ProcessProvider */
             $process = $this->app["process"];
             if (PHP_OS == "Darwin") {
-                $maxid = $process->executeCommand("dscl . list /Users UniqueID | awk '{print $2}' | sort -ug | tail -1");
+                $maxid = $process->executeCommand("dscl . list /Users UniqueID | awk '{print $2}' | sort -ug | tail -1", $output);
                 $maxid = $maxid + 1;
                 $process->executeCommand('dscl . create /Users/' . $username, $output);
                 $process->executeCommand('dscl . create /Users/' . $username . ' UserShell /bin/bash', $output);
@@ -93,8 +101,8 @@ class PermissionsProvider implements ServiceProviderInterface
      */
     private function isUser($username, OutputInterface $output)
     {
-        $process = $this->app["process"];
-        return $process->executeCommand('id ' . $username, $output, true);
+        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        return $this->process->executeCommand('id ' . $username, $output, true);
     }
 
     /**
@@ -103,12 +111,11 @@ class PermissionsProvider implements ServiceProviderInterface
      */
     public function applyOwnership(Project $project, OutputInterface $output)
     {
-        /** @var $process ProcessProvider */
-        $process = $this->app["process"];
+        if (is_null($this->process)){ $this->process = $this->app["process"]; }
         /** @var $filesystem FileSystemProvider */
         $filesystem = $this->app['filesystem'];
         foreach ($project->getPermissionDefinitions() as $pd) {
-            $process->executeCommand('chown ' . $pd->getOwnership() . ' ' . $filesystem->getProjectDirectory($project->getName()) . $pd->getPath(), $output);
+            $this->process->executeCommand('chown ' . $pd->getOwnership() . ' ' . $filesystem->getProjectDirectory($project->getName()) . $pd->getPath(), $output);
         }
     }
 
@@ -118,17 +125,16 @@ class PermissionsProvider implements ServiceProviderInterface
      */
     public function applyPermissions(Project $project, OutputInterface $output)
     {
-        /** @var $process ProcessProvider */
-        $process = $this->app["process"];
+        if (is_null($this->process)){ $this->process = $this->app["process"]; }
         /** @var $filesystem FileSystemProvider */
         $filesystem = $this->app['filesystem'];
         if ($this->app["config"]["permissions"]["develmode"]) {
-            $process->executeCommand('chmod -R 777 ' . $filesystem->getProjectDirectory($project->getName()), $output);
-            $process->executeCommand('chmod -R 700 ' . $filesystem->getProjectDirectory($project->getName()) . '/.ssh/', $output);
+            $this->process->executeCommand('chmod -R 777 ' . $filesystem->getProjectDirectory($project->getName()), $output);
+            $this->process->executeCommand('chmod -R 700 ' . $filesystem->getProjectDirectory($project->getName()) . '/.ssh/', $output);
         } else {
             foreach ($project->getPermissionDefinitions() as $pd) {
                 foreach ($pd->getAcl() as $acl) {
-                    $process->executeCommand('setfacl ' . $acl . ' ' . $filesystem->getProjectDirectory($project->getName()) . $pd->getPath(), $output);
+                    $this->process->executeCommand('setfacl ' . $acl . ' ' . $filesystem->getProjectDirectory($project->getName()) . $pd->getPath(), $output);
                 }
             }
         }
@@ -140,9 +146,8 @@ class PermissionsProvider implements ServiceProviderInterface
      */
     public function killProcesses($username, OutputInterface $output)
     {
-        /** @var $process ProcessProvider */
-        $process = $this->app["process"];
-        $process->executeCommand("su - " . $username . " -c 'kill -9 -1'", $output, true);
+        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        $this->process->executeCommand("su - " . $username . " -c 'kill -9 -1'", $output, true);
     }
 
     /**
@@ -153,12 +158,12 @@ class PermissionsProvider implements ServiceProviderInterface
     public function removeUser($username, $groupname, OutputInterface $output)
     {
         if ($this->isUser($username, $output)) {
-            $process = $this->app["process"];
+            if (is_null($this->process)){ $this->process = $this->app["process"]; }
             if (PHP_OS == "Darwin") {
-                $process->executeCommand('dscl . delete /Users/' . $username, $output);
-                $process->executeCommand('dscl . delete /Groups/' . $groupname, $output);
+                $this->process->executeCommand('dscl . delete /Users/' . $username, $output);
+                $this->process->executeCommand('dscl . delete /Groups/' . $groupname, $output);
             } else {
-                $process->executeCommand('userdel ' . $username, $output);
+                $this->process->executeCommand('userdel ' . $username, $output);
             }
         }
     }

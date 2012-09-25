@@ -7,6 +7,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Cilex\Command\Command;
+use Symfony\Component\Finder\SplFileInfo;
+use Kunstmaan\kServer\Skeleton\SkeletonInterface;
 
 class MaintenanceCommand extends kServerCommand
 {
@@ -28,12 +30,14 @@ class MaintenanceCommand extends kServerCommand
         $this->prepareProviders();
 
         $projects = $this->filesystem->getProjects();
-        foreach ($projects as $project) {
-            $projectname = $project->getFilename();
+        /** @var $projectFile SplFileInfo */
+        foreach ($projects as $projectFile) {
+            $projectname = $projectFile->getFilename();
             $output->writeln("<info> ---> Running maintenance on project $projectname</info>");
             $project = $this->projectConfig->loadProjectConfig($projectname, $output);
             foreach ($project->getDependencies() as $skeletonName => $skeletonClass) {
                 $output->writeln("<comment>      > Running maintenance of the $skeletonName skeleton</comment>");
+                /** @var $skeleton SkeletonInterface */
                 $skeleton = new $skeletonClass;
                 $skeleton->maintenance($this->getContainer(), $project, $output);
             }

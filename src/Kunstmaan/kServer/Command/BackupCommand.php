@@ -7,6 +7,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Cilex\Command\Command;
+use Kunstmaan\kServer\Skeleton\SkeletonInterface;
+use Symfony\Component\Finder\SplFileInfo;
 
 class BackupCommand extends kServerCommand
 {
@@ -33,10 +35,12 @@ class BackupCommand extends kServerCommand
 
         // Loop over all the projects to run the backup
         $projects = $this->filesystem->getProjects();
-        foreach ($projects as $project) {
+
+        /** @var $projectFile SplFileInfo */
+        foreach ($projects as $projectFile) {
 
             // Check if the user wants to run the backup of only one project
-            $projectname = $project->getFilename();
+            $projectname = $projectFile->getFilename();
             if (isset($onlyprojectname) && $projectname != $onlyprojectname) {
                 continue;
             }
@@ -47,6 +51,7 @@ class BackupCommand extends kServerCommand
             // Run the preBackup hook for all dependencies
             foreach ($project->getDependencies() as $skeletonName => $skeletonClass) {
                 $output->writeln("<comment>      > Running preBackup of the $skeletonName skeleton</comment>");
+                /** @var $skeleton SkeletonInterface */
                 $skeleton = new $skeletonClass;
                 $skeleton->preBackup($this->getContainer(), $project, $output);
             }
@@ -59,6 +64,7 @@ class BackupCommand extends kServerCommand
             // Run the postBackup hook for all dependencies
             foreach ($project->getDependencies() as $skeletonName => $skeletonClass) {
                 $output->writeln("<comment>      > Running postBackup of the $skeletonName skeleton</comment>");
+                /** @var $skeleton SkeletonInterface */
                 $skeleton = new $skeletonClass;
                 $skeleton->postBackup($this->getContainer(), $project, $output);
             }
