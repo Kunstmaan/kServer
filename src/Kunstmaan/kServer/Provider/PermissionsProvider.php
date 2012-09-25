@@ -138,10 +138,11 @@ class PermissionsProvider implements ServiceProviderInterface
      * @param $username
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
-    public function killProcesses($username, OutputInterface $output){
+    public function killProcesses($username, OutputInterface $output)
+    {
         /** @var $process ProcessProvider */
         $process = $this->app["process"];
-        $process->executeCommand("su - ".$username." -c 'kill -9 -1'",$output, true);
+        $process->executeCommand("su - " . $username . " -c 'kill -9 -1'", $output, true);
     }
 
     /**

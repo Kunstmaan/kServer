@@ -33,7 +33,7 @@ class RemoveProjectCommand extends kServerCommand
         }
 
         $dialog = $this->getHelperSet()->get('dialog');
-        if (!$dialog->askConfirmation($output, '<question>Are you sure you want to remove '.$projectname.'?</question>', false)) {
+        if (!$dialog->askConfirmation($output, '<question>Are you sure you want to remove ' . $projectname . '?</question>', false)) {
             return;
         }
 
@@ -42,12 +42,12 @@ class RemoveProjectCommand extends kServerCommand
         $command = $this->getApplication()->find('backup');
         $arguments = array(
             'command' => 'backup',
-            'project'    => $projectname,
+            'project' => $projectname,
         );
         $input = new ArrayInput($arguments);
         $returnCode = $command->run($input, $output);
 
-        if(is_null($returnCode)){
+        if (is_null($returnCode)) {
             //$this->permission->killProcesses($projectname, $output);
         }
 

@@ -52,13 +52,14 @@ abstract class kServerCommand extends Command
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @throws RuntimeException
      */
-    protected function askForProjectName($argumentname, InputInterface $input, OutputInterface $output){
+    protected function askForProjectName($argumentname, InputInterface $input, OutputInterface $output)
+    {
         $projectname = $input->getArgument($argumentname);
-        if (is_null($projectname)){
+        if (is_null($projectname)) {
             $dialog = $this->getHelperSet()->get('dialog');
             $projectname = $dialog->ask($output, '<question>Please enter the name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive: </question>');
         }
-        if (is_null($projectname)){
+        if (is_null($projectname)) {
             throw new RuntimeException("A projectname is required, what am I, psychic?");
         }
         return $projectname;
