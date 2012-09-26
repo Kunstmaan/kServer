@@ -5,6 +5,10 @@ projects:
 permissions:
     develmode:  false
 
+mysql:
+    rootuser: root
+    rootpassword: vagrant
+
 skeletons:
     base:   Kunstmaan\kServer\Skeleton\BaseSkeleton
     mysql:  Kunstmaan\kServer\Skeleton\MySQLSkeleton

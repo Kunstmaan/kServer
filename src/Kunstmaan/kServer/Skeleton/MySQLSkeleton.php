@@ -2,11 +2,15 @@
 namespace Kunstmaan\kServer\Skeleton;
 
 use Cilex\Application;
+use Symfony\Component\Finder\Finder;
+use PDOException;
 use PWGen;
 use Symfony\Component\Console\Output\OutputInterface;
 use Kunstmaan\kServer\Entity\Project;
 use Kunstmaan\kServer\Provider\FileSystemProvider;
 use Symfony\Component\Console\Helper\DialogHelper;
+use PDO;
+use Kunstmaan\kServer\Provider\ProcessProvider;
 
 class MySQLSkeleton implements SkeletonInterface
 {
@@ -53,11 +57,29 @@ class MySQLSkeleton implements SkeletonInterface
      */
     public function maintenance(Application $app, Project $project, OutputInterface $output)
     {
-        //$pdo = new PDO('mysql:host=example.com;dbname=database', 'user', 'password');
-
-
-
-        // TODO: Implement maintenance() method.
+        try {
+            $pdo = new PDO('mysql:host='.$project->getMysqlHost().';port='.$project->getMysqlPort().';dbname='.$project->getMysqlUser(), $project->getMysqlUser(), $project->getMysqlPassword());
+        } catch(PDOException $exLoginTest){
+            $output->writeln("<comment>      > Cannot connect as " . $project->getMysqlUser() . ", let's test if the database exists (".$exLoginTest->getMessage().")</comment>");
+            try {
+                $pdo = new PDO('mysql:host='.$project->getMysqlHost().';port='.$project->getMysqlPort().';dbname='.$project->getMysqlUser(), $app["config"]["mysql"]["rootuser"], $app["config"]["mysql"]["rootpassword"]);
+            } catch(PDOException $exDBTest){
+                $output->writeln("<comment>      > Cannot connect to the " . $project->getMysqlUser() . " database as the root user as well, let's create it. (".$exDBTest->getMessage().")</comment>");
+                $pdo = new PDO('mysql:host='.$project->getMysqlHost().';port='.$project->getMysqlPort(), $app["config"]["mysql"]["rootuser"], $app["config"]["mysql"]["rootpassword"]);
+                $pdo->exec("create database " . $project->getMysqlUser() . " CHARACTER SET utf8 COLLATE utf8_general_ci;");
+                $finder = new Finder();
+                /** @var $filesystem FileSystemProvider */
+                $filesystem = $app["filesystem"];
+                $finder->files()->in($filesystem->getMySQLBackupDirectory($project, $output))->name("mysql.dmp.gz");
+                if (sizeof(iterator_to_array($finder)) > 0){
+                    /** @var $process ProcessProvider */
+                    $process = $app["process"];
+                    $process->executeCommand('gzip -dc '.$filesystem->getMySQLBackupDirectory($project, $output).'/mysql.dmp.gz | mysql -h '.$project->getMysqlHost().' -P '.$project->getMysqlPort().' -u '.$app["config"]["mysql"]["rootuser"].' -p'.$app["config"]["mysql"]["rootpassword"].' '.$project->getMysqlUser(), $output);
+                }
+            }
+            $pdo->exec("GRANT ALL PRIVILEGES ON ".$project->getMysqlUser().".* TO ".$project->getMysqlUser()."@localhost IDENTIFIED BY '".$project->getMysqlPassword()."'");
+            $pdo->exec("GRANT ALL PRIVILEGES ON ".$project->getMysqlUser().".* TO ".$project->getMysqlUser()."@'%%' IDENTIFIED BY '".$project->getMysqlPassword()."'");
+        }
     }
 
     /**

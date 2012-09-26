@@ -1,7 +1,8 @@
 #!/bin/bash
 
 export DEBIAN_FRONTEND=noninteractive
-
+export INSTALLBASE=$1
+export MYSQLROOTPASSWD=$2
 
 echo "##### Setting up ACL"
 
@@ -11,9 +12,19 @@ cat /etc/fstab | grep precise64-root | sed "s/remount-ro/remount-ro,acl/" >> /et
 mv /etc/fstab.tmp /etc/fstab
 mount -a
 
-echo "##### Installing PHP"
+echo "##### Installing mysql"
+yes | apt-get -y -q install mysql-server
+mysql -uroot -e "UPDATE mysql.user SET Password = PASSWORD('$MYSQLROOTPASSWD') WHERE User = 'root'; DELETE FROM mysql.user WHERE User=''; DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); DROP DATABASE IF EXISTS test; FLUSH PRIVILEGES;"
 
+
+
+echo "##### Installing PHP"
 yes | apt-get -y -q install php5-fpm php5-mysqlnd php5-mcrypt php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev
+yes | pecl install imagick-beta
+yes | pecl install APC-beta
+echo "extension=imagick.so" > /etc/php5/conf.d/50-imagick.ini
+cat $INSTALLBASE/provisioning/etc/php5/conf.d/50-apc.ini > /etc/php5/conf.d/50-apc.ini
+cat $INSTALLBASE/provisioning/etc/php5/conf.d/99-kunstmaan.ini > /etc/php5/conf.d/99-kunstmaan.ini
 
 echo "##### Configuring GIT"
 

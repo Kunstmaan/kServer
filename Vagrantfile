@@ -18,5 +18,5 @@ Vagrant::Config.run do |config|
   config.vm.host_name = "#{projectname}.dev.kunstmaan.be"
   config.hosts.aliases = "www.#{projectname}.dev.kunstmaan.be"
 
-  config.vm.provision :shell, :path => "provisioning/installer"
+  config.vm.provision :shell, :path => "provisioning/installer", :args => "/vagrant vagrant"
 end

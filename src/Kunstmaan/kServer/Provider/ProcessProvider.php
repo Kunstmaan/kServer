@@ -30,6 +30,7 @@ class ProcessProvider implements ServiceProviderInterface
     {
         $output->writeln("<comment>      $ " . $command . "</comment>");
         $process = new Process($command);
+        $process->setTimeout(3600);
         $process->run();
         if (!$process->isSuccessful()) {
             if (!$silent) {
