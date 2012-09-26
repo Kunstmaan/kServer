@@ -2,9 +2,11 @@
 namespace Kunstmaan\kServer\Skeleton;
 
 use Cilex\Application;
+use PWGen;
 use Symfony\Component\Console\Output\OutputInterface;
 use Kunstmaan\kServer\Entity\Project;
 use Kunstmaan\kServer\Provider\FileSystemProvider;
+use Symfony\Component\Console\Helper\DialogHelper;
 
 class MySQLSkeleton implements SkeletonInterface
 {
@@ -27,10 +29,20 @@ class MySQLSkeleton implements SkeletonInterface
         /** @var $filesystem FileSystemProvider */
         $filesystem = $app["filesystem"];
         $filesystem->createMySQLBackupDirectory($project, $output);
-        $project->setMysqlUser("x");
-        $project->setMysqlPassword("y");
-        $project->setMysqlHost("z");
-        $project->setMysqlPort(1);
+
+        /** @var $console \Symfony\Component\Console\Application */
+        $console = $app['console'];
+        /** @var $dialog DialogHelper */
+        $dialog = $console->getHelperSet()->get('dialog');
+
+        $project->setMysqlUser($dialog->ask($output, '      <question>Enter the preferred MySQL username: ['.$project->getName().'] </question>', $project->getName()));
+
+        $pwgen = new PWGen();
+        $password = $pwgen->generate();
+
+        $project->setMysqlPassword($dialog->ask($output, '      <question>Enter the preferred MySQL password: ['.$password.'] </question>', $password));
+        $project->setMysqlHost($dialog->ask($output, '      <question>Enter the MySQL hostname: [localhost] </question>', 'localhost'));
+        $project->setMysqlPort($dialog->ask($output, '      <question>Enter the MySQL port: [3306] </question>', 3306));
     }
 
     /**
