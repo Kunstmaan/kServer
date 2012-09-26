@@ -90,7 +90,22 @@ class MySQLSkeleton implements SkeletonInterface
      */
     public function preBackup(Application $app, Project $project, OutputInterface $output)
     {
-        // TODO: Implement preBackup() method.
+        /** @var $process ProcessProvider */
+        $process = $app["process"];
+        /** @var $filesystem FileSystemProvider */
+        $filesystem = $app["filesystem"];
+        $process->executeCommand('rm -f '.$filesystem->getMySQLBackupDirectory($project, $output).'/mysql.dmp', $output);
+        $process->executeCommand('rm -f '.$filesystem->getMySQLBackupDirectory($project, $output).'/mysql.dmp.previous.gz', $output);
+        $process->executeCommand('mv '.$filesystem->getMySQLBackupDirectory($project, $output).'/mysql.dmp.gz '.$filesystem->getMySQLBackupDirectory($project, $output).'/mysql.dmp.previous.gz', $output);
+        $process->executeCommand("echo 'SET autocommit=0;' > ".$filesystem->getMySQLBackupDirectory($project, $output)."/mysql.dmp", $output);
+		$process->executeCommand("echo 'SET unique_checks=0;' >> ".$filesystem->getMySQLBackupDirectory($project, $output)."/mysql.dmp", $output);
+		$process->executeCommand("echo 'SET foreign_key_checks=0;' >> ".$filesystem->getMySQLBackupDirectory($project, $output)."/mysql.dmp", $output);
+		$process->executeCommand("mysqldump --ignore-table=".$project->getMysqlUser().".sessions --skip-opt --add-drop-table --add-locks --create-options --disable-keys --single-transaction --skip-extended-insert --quick --set-charset -u ".$project->getMysqlUser()." -p".$project->getMysqlPassword()." ".$project->getMysqlUser()." >> ".$filesystem->getMySQLBackupDirectory($project, $output)."/mysql.dmp", $output);
+		$process->executeCommand("echo 'COMMIT;' >> ".$filesystem->getMySQLBackupDirectory($project, $output)."/mysql.dmp", $output);
+		$process->executeCommand("echo 'SET autocommit=1;' >> ".$filesystem->getMySQLBackupDirectory($project, $output)."/mysql.dmp", $output);
+		$process->executeCommand("echo 'SET unique_checks=1;' >> ".$filesystem->getMySQLBackupDirectory($project, $output)."/mysql.dmp", $output);
+		$process->executeCommand("echo 'SET foreign_key_checks=1;' >> ".$filesystem->getMySQLBackupDirectory($project, $output)."/mysql.dmp", $output);
+        $process->executeCommand("gzip ".$filesystem->getMySQLBackupDirectory($project, $output)."/mysql.dmp -f", $output);
     }
 
     /**
@@ -101,7 +116,6 @@ class MySQLSkeleton implements SkeletonInterface
      */
     public function postBackup(Application $app, Project $project, OutputInterface $output)
     {
-        // TODO: Implement postBackup() method.
     }
 
     /**
@@ -112,7 +126,6 @@ class MySQLSkeleton implements SkeletonInterface
      */
     public function preRemove(Application $app, Project $project, OutputInterface $output)
     {
-        // TODO: Implement preRemove() method.
     }
 
     /**
@@ -123,7 +136,8 @@ class MySQLSkeleton implements SkeletonInterface
      */
     public function postRemove(Application $app, Project $project, OutputInterface $output)
     {
-        // TODO: Implement postRemove() method.
+        $pdo = new PDO('mysql:host='.$project->getMysqlHost().';port='.$project->getMysqlPort().';dbname='.$project->getMysqlUser(), $project->getMysqlUser(), $project->getMysqlPassword());
+        $pdo->exec("drop database " . $project->getMysqlUser());
     }
 
     /**
