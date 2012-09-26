@@ -2,7 +2,7 @@
 <?php
 require_once __DIR__.'/vendor/autoload.php';
 
-$app = new \Cilex\Application('kServer');
+$app = new \Cilex\Application('kServer', '1.0');
 $app->register(new \Cilex\Provider\ConfigServiceProvider(), array('config.path' => __DIR__."/config/config.yml"));
 $app->register(new \Kunstmaan\kServer\Provider\FileSystemProvider());
 $app->register(new \Kunstmaan\kServer\Provider\ProcessProvider());
