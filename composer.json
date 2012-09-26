@@ -10,21 +10,22 @@
             "email": "roderik.van.der.veer@kunstmaan.be"
         }
     ],
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/roderik/pwgen-php"
-        }
-    ],
     "require":{
         "php":                  ">=5.3.3",
         "cilex/cilex":          "1.0.x-dev",
         "symfony/yaml":         ">=1.0.0",
-        "roderik/pwgen-php":    "0.1.x"
+        "roderik/pwgen-php":    "0.1.x",
+        "roderik/cilex-twig":     "dev-master@dev"
     },
     "autoload":{
         "psr-0":{
             "Kunstmaan": "src/"
         }
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/roderik/cilex-twig"
+        }
+    ]
 }
