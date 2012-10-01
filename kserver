@@ -10,7 +10,7 @@ $app->register(new \Kunstmaan\kServer\Provider\SkeletonProvider());
 $app->register(new \Kunstmaan\kServer\Provider\ProjectConfigProvider());
 $app->register(new \Kunstmaan\kServer\Provider\PermissionsProvider());
 $app->register(new \Cilex\Provider\TwigServiceProvider(), array(
-    'twig.path' => __DIR__.'/templates',
+    'twig.path' => '/',
 ));
 $app->command(new \Kunstmaan\kServer\Command\NewProjectCommand());
 $app->command(new \Kunstmaan\kServer\Command\SetPermissionsCommand());

@@ -1,0 +1,2 @@
+ServerName {{ mainURL }}
+ServerAlias {% for alternativeURL in alternativeURI %}{{ alternativeURL }}{% endfor %}

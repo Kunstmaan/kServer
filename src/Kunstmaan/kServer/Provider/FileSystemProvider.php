@@ -64,6 +64,15 @@ class FileSystemProvider implements ServiceProviderInterface
 
     /**
      * @param $projectname
+     * @return string
+     */
+    public function getProjectConfigDirectory($projectname)
+    {
+        return $this->getProjectDirectory($projectname)."/config";
+    }
+
+    /**
+     * @param $projectname
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
     public function createProjectDirectory($projectname, OutputInterface $output)
@@ -134,5 +143,23 @@ class FileSystemProvider implements ServiceProviderInterface
         $projectDirectory = $this->getProjectDirectory($project->getName());
         if (is_null($this->process)){ $this->process = $this->app["process"]; }
         $this->process->executeCommand("rm -Rf " . $projectDirectory, $output);
+    }
+
+    /**
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
+    public function createCompiledVhostConfigDirectory(Project $project, OutputInterface $output)
+    {
+        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        $this->process->executeCommand('mkdir -p /etc/apache2/vhost.d/' . $project->getName(), $output);
+        $this->process->executeCommand('mkdir -p /etc/apache2/vhost.d/' . $project->getName() . "/shared", $output);
+        $this->process->executeCommand('mkdir -p /etc/apache2/vhost.d/' . $project->getName() . "/nossl", $output);
+        $this->process->executeCommand('mkdir -p /etc/apache2/vhost.d/' . $project->getName() . "/ssl", $output);
+    }
+
+    public function getCompiledVhostConfigDirectory(Project $project, OutputInterface $output){
+        $this->createCompiledVhostConfigDirectory($project, $output);
+        return '/etc/apache2/vhost.d/' . $project->getName();
     }
 }

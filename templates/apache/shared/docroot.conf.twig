@@ -1,0 +1,13 @@
+DocumentRoot {{ documentRoot }}
+
+<Directory />
+Options FollowSymLinks
+AllowOverride None
+</Directory>
+
+<Directory {{ documentRoot }}>
+    Options Indexes FollowSymLinks MultiViews
+    AllowOverride None
+    Order allow,deny
+    allow from all
+</Directory>

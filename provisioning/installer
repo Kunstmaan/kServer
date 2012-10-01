@@ -12,6 +12,10 @@ cat /etc/fstab | grep precise64-root | sed "s/remount-ro/remount-ro,acl/" >> /et
 mv /etc/fstab.tmp /etc/fstab
 mount -a
 
+echo "##### Installing apache"
+yes | apt-get -y -q install apache2 apache2-mpm-worker apache2-threaded-dev libapache2-mod-rpaf libapache2-mod-fastcgi
+a2dissite 000-default
+
 echo "##### Installing mysql"
 yes | apt-get -y -q install mysql-server
 mysql -uroot -e "UPDATE mysql.user SET Password = PASSWORD('$MYSQLROOTPASSWD') WHERE User = 'root'; DELETE FROM mysql.user WHERE User=''; DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); DROP DATABASE IF EXISTS test; FLUSH PRIVILEGES;"
