@@ -3,18 +3,20 @@
 require_once __DIR__.'/vendor/autoload.php';
 
 $app = new \Cilex\Application('kServer', '1.0');
+
+$output = new Symfony\Component\Console\Output\ConsoleOutput();
+
 $app->register(new \Cilex\Provider\ConfigServiceProvider(), array('config.path' => __DIR__."/config/config.yml"));
 $app->register(new \Kunstmaan\kServer\Provider\FileSystemProvider());
 $app->register(new \Kunstmaan\kServer\Provider\ProcessProvider());
 $app->register(new \Kunstmaan\kServer\Provider\SkeletonProvider());
 $app->register(new \Kunstmaan\kServer\Provider\ProjectConfigProvider());
 $app->register(new \Kunstmaan\kServer\Provider\PermissionsProvider());
-$app->register(new \Kunstmaan\kServer\Provider\DialogProvider());
+$app->register(new \Kunstmaan\kServer\Provider\DialogProvider($output));
 $app->register(new \Cilex\Provider\TwigServiceProvider(), array(
     'twig.path' => '/',
 ));
 
-$output = new Symfony\Component\Console\Output\ConsoleOutput();
 
 $app->command(new \Kunstmaan\kServer\Command\NewProjectCommand($output));
 $app->command(new \Kunstmaan\kServer\Command\SetPermissionsCommand($output));

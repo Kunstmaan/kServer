@@ -22,7 +22,7 @@ class NewProjectCommand extends AbstractCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $projectname = $this->dialog->askFor('name', "Please enter the name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive",$input, $output);
+        $projectname = $this->dialog->askFor('name', "Please enter the name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive", $input);
 
         // Check if the project exists, do use in creating a new one with the same name.
         if ($this->filesystem->projectExists($projectname)) {
@@ -32,7 +32,7 @@ class NewProjectCommand extends AbstractCommand
         $output->writeln("<info> ---> Creating project $projectname</info>");
         $this->filesystem->createProjectDirectory($projectname, $output);
         $project = $this->projectConfig->createNewProjectConfig($projectname, $output);
-        $this->skeleton->applySkeleton($project, new BaseSkeleton(), $output);
+        $this->skeleton->applySkeleton($project, $this->skeleton->findSkeleton("base"), $output);
         $project->writeConfig($output);
     }
 }
