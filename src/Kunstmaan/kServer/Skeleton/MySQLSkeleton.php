@@ -12,7 +12,7 @@ use Symfony\Component\Console\Helper\DialogHelper;
 use PDO;
 use Kunstmaan\kServer\Provider\ProcessProvider;
 
-class MySQLSkeleton implements SkeletonInterface
+class MySQLSkeleton extends AbstractSkeleton
 {
     /**
      * @return string

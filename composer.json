@@ -11,11 +11,12 @@
         }
     ],
     "require":{
-        "php":                  ">=5.3.3",
-        "cilex/cilex":          "1.0.x-dev",
-        "symfony/yaml":         ">=1.0.0",
-        "roderik/pwgen-php":    "0.1.x",
-        "roderik/cilex-twig":     "dev-master@dev"
+        "php":                      ">=5.3.3",
+        "cilex/cilex":              "1.0.x-dev",
+        "symfony/yaml":             "2.1.x",
+        "symfony/serializer":       "2.1.x",
+        "roderik/pwgen-php":        "0.1.x",
+        "roderik/cilex-twig":       "1.0.x"
     },
     "autoload":{
         "psr-0":{

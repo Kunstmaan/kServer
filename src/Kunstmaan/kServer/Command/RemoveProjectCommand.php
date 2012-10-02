@@ -11,7 +11,7 @@ use Cilex\Command\Command;
 use Symfony\Component\Console\Helper\DialogHelper;
 use Kunstmaan\kServer\Skeleton\SkeletonInterface;
 
-class RemoveProjectCommand extends kServerCommand
+class RemoveProjectCommand extends AbstractCommand
 {
 
     protected function configure()
@@ -24,9 +24,8 @@ class RemoveProjectCommand extends kServerCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->prepareProviders();
 
-        $projectname = $this->askFor('name', "Please enter the name of the project",$input, $output);
+        $projectname = $this->dialog->askFor('name', "Please enter the name of the project",$input, $output);
 
         // Check if the project exists, do use in creating a new one with the same name.
         if (!$this->filesystem->projectExists($projectname)) {

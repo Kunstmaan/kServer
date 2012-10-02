@@ -9,7 +9,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Cilex\Command\Command;
 
-class ApplySkeletonCommand extends kServerCommand
+class ApplySkeletonCommand extends AbstractCommand
 {
 
     protected function configure()

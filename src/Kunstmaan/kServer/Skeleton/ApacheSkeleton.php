@@ -8,8 +8,9 @@ use Kunstmaan\kServer\Entity\Project;
 use Kunstmaan\kServer\Provider\ProcessProvider;
 use Kunstmaan\kServer\Provider\FileSystemProvider;
 
-class ApacheSkeleton implements SkeletonInterface
+class ApacheSkeleton extends AbstractSkeleton
 {
+
     /**
      * @return string
      */
@@ -44,13 +45,16 @@ class ApacheSkeleton implements SkeletonInterface
         /** @var $process ProcessProvider */
         $process = $app["process"];
         $process->executeCommand("rm -Rf " . $this->getCompiledVhostConfigDir($app, $project, $output), $output);
+        /** @var $filesystem FileSystemProvider */
+        $filesystem = $app["filesystem"];
+        $filesystem->createCompiledVhostConfigDirectory($project, $output);
 
         $finder = new Finder();
         $finder->files()->in($this->getVhostSharedConfigDir($app, $project))->name("*.conf.twig");
         $sharedConfigs = array();
         foreach ($finder as $sharedConfig){
             $shared = $app['twig']->render($this->getVhostSharedConfigDir($app,$project) . "/" .$sharedConfig->getFilename(), array(
-                "somevar" => "woele"
+                "project" => $project
             ));
             file_put_contents($this->getCompiledVhostSharedConfigDir($app,$project, $output) . "/" .str_replace(".twig", "", $sharedConfig->getFilename()), $shared);
         }
@@ -59,7 +63,7 @@ class ApacheSkeleton implements SkeletonInterface
         $nosslConfigs = array();
         foreach ($finder as $nosslConfig){
             $nossl = $app['twig']->render($this->getVhostNoSSLConfigDir($app,$project) . "/" .$nosslConfig->getFilename(), array(
-                "somevar" => "woele"
+                "project" => $project
             ));
             file_put_contents($this->getCompiledVhostNoSSlConfigDir($app,$project, $output) . "/" .str_replace(".twig", "", $nosslConfig->getFilename()), $nossl);
         }
@@ -68,13 +72,12 @@ class ApacheSkeleton implements SkeletonInterface
         $sslConfig = array();
         foreach ($finder as $sslConfig){
             $ssl = $app['twig']->render($this->getVhostSSLConfigDir($app,$project) . "/" .$sslConfig->getFilename(), array(
-                "somevar" => "woele"
+                "project" => $project
             ));
             file_put_contents($this->getCompiledVhostSSLConfigDir($app,$project, $output) . "/" .str_replace(".twig", "", $sslConfig->getFilename()), $ssl);
         }
         $vhost = $app['twig']->render($this->getVhostConfigDir($app,$project) . '/vhost.conf.twig', array(
-            'serverAdmin' => 'support@kunstmaan.be',
-            'configLocation' => '/etc/apache2/vhost.d/'.$project->getName()
+            "project" => $project
         ));
         file_put_contents($this->getCompiledVhostConfigDir($app,$project, $output) . "/vhost.conf", $vhost);
         $process->executeCommand("ln -sf " . $this->getCompiledVhostConfigDir($app,$project, $output) . "/vhost.conf /etc/apache2/sites-available/" . $project->getName(), $output);

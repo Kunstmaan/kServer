@@ -10,7 +10,7 @@ use Cilex\Command\Command;
 use Kunstmaan\kServer\Skeleton\SkeletonInterface;
 use Symfony\Component\Finder\SplFileInfo;
 
-class BackupCommand extends kServerCommand
+class BackupCommand extends AbstractCommand
 {
 
     protected function configure()

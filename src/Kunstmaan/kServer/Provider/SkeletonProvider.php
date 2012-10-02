@@ -3,6 +3,7 @@
 namespace Kunstmaan\kServer\Provider;
 
 use Cilex\ServiceProviderInterface;
+use Kunstmaan\kServer\Skeleton\AbstractSkeleton;
 use Kunstmaan\kServer\Skeleton\SkeletonInterface;
 use Kunstmaan\kServer\Entity\Project;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -30,10 +31,10 @@ class SkeletonProvider implements ServiceProviderInterface
 
     /**
      * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Kunstmaan\kServer\Skeleton\SkeletonInterface $skeleton
+     * @param \Kunstmaan\kServer\Skeleton\AbstractSkeleton $skeleton
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
-    function applySkeleton(Project $project, SkeletonInterface $skeleton, OutputInterface $output)
+    function applySkeleton(Project $project, AbstractSkeleton $skeleton, OutputInterface $output)
     {
         $output->writeln("<comment>      > Applying " . get_class($skeleton) . " to " . $project->getName() . " </comment>");
         $project->addDependency($skeleton);

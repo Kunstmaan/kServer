@@ -159,7 +159,6 @@ class FileSystemProvider implements ServiceProviderInterface
     }
 
     public function getCompiledVhostConfigDirectory(Project $project, OutputInterface $output){
-        $this->createCompiledVhostConfigDirectory($project, $output);
         return '/etc/apache2/vhost.d/' . $project->getName();
     }
 }

@@ -9,14 +9,18 @@ $app->register(new \Kunstmaan\kServer\Provider\ProcessProvider());
 $app->register(new \Kunstmaan\kServer\Provider\SkeletonProvider());
 $app->register(new \Kunstmaan\kServer\Provider\ProjectConfigProvider());
 $app->register(new \Kunstmaan\kServer\Provider\PermissionsProvider());
+$app->register(new \Kunstmaan\kServer\Provider\DialogProvider());
 $app->register(new \Cilex\Provider\TwigServiceProvider(), array(
     'twig.path' => '/',
 ));
-$app->command(new \Kunstmaan\kServer\Command\NewProjectCommand());
-$app->command(new \Kunstmaan\kServer\Command\SetPermissionsCommand());
-$app->command(new \Kunstmaan\kServer\Command\MaintenanceCommand());
-$app->command(new \Kunstmaan\kServer\Command\BackupCommand());
-$app->command(new \Kunstmaan\kServer\Command\RemoveProjectCommand());
-$app->command(new \Kunstmaan\kServer\Command\ApplySkeletonCommand());
+
+$output = new Symfony\Component\Console\Output\ConsoleOutput();
+
+$app->command(new \Kunstmaan\kServer\Command\NewProjectCommand($output));
+$app->command(new \Kunstmaan\kServer\Command\SetPermissionsCommand($output));
+$app->command(new \Kunstmaan\kServer\Command\MaintenanceCommand($output));
+$app->command(new \Kunstmaan\kServer\Command\BackupCommand($output));
+$app->command(new \Kunstmaan\kServer\Command\RemoveProjectCommand($output));
+$app->command(new \Kunstmaan\kServer\Command\ApplySkeletonCommand($output));
 
 $app->run();

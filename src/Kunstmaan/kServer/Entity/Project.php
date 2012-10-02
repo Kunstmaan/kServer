@@ -1,8 +1,8 @@
 <?php
 namespace Kunstmaan\kServer\Entity;
 
-
 use Symfony\Component\Yaml\Dumper;
+use Kunstmaan\kServer\Skeleton\AbstractSkeleton;
 use Symfony\Component\Yaml\Yaml;
 use Kunstmaan\kServer\Skeleton\SkeletonInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -103,9 +103,9 @@ class Project
     }
 
     /**
-     * @param \Kunstmaan\kServer\Skeleton\SkeletonInterface $skeleton
+     * @param \Kunstmaan\kServer\Skeleton\AbstractSkeleton $skeleton
      */
-    public function addDependency(SkeletonInterface $skeleton)
+    public function addDependency(AbstractSkeleton $skeleton)
     {
         $this->dependencies[$skeleton->getName()] = get_class($skeleton);
     }
@@ -227,9 +227,7 @@ class Project
         file_put_contents($this->getConfigPath(), $yaml);
     }
 
-    /**
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     */
+
     public function loadConfig($skeletons, OutputInterface $output)
     {
         $output->writeln("<comment>      > Loading the project config from " . $this->getConfigPath() . "</comment>");

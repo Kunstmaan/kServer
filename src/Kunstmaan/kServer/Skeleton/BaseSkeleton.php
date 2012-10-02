@@ -10,7 +10,7 @@ use Kunstmaan\kServer\Provider\FileSystemProvider;
 use Kunstmaan\kServer\Provider\PermissionsProvider;
 
 
-class BaseSkeleton implements SkeletonInterface
+class BaseSkeleton extends AbstractSkeleton
 {
 
     /**

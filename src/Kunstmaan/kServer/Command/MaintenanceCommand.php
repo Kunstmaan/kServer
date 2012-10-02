@@ -8,9 +8,9 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Cilex\Command\Command;
 use Symfony\Component\Finder\SplFileInfo;
-use Kunstmaan\kServer\Skeleton\SkeletonInterface;
+use Kunstmaan\kServer\Skeleton\AbstractSkeleton;
 
-class MaintenanceCommand extends kServerCommand
+class MaintenanceCommand extends AbstractCommand
 {
 
     protected function configure()
@@ -37,8 +37,8 @@ class MaintenanceCommand extends kServerCommand
             $project = $this->projectConfig->loadProjectConfig($projectname, $output);
             foreach ($project->getDependencies() as $skeletonName => $skeletonClass) {
                 $output->writeln("<comment>      > Running maintenance of the $skeletonName skeleton</comment>");
-                /** @var $skeleton SkeletonInterface */
-                $skeleton = new $skeletonClass;
+                /** @var $skeleton AbstractSkeleton */
+                $skeleton = new $skeletonClass($this->getContainer());
                 $skeleton->maintenance($this->getContainer(), $project, $output);
             }
         }

@@ -9,7 +9,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Cilex\Command\Command;
 
-class NewProjectCommand extends kServerCommand
+class NewProjectCommand extends AbstractCommand
 {
 
     protected function configure()
@@ -22,9 +22,7 @@ class NewProjectCommand extends kServerCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->prepareProviders();
-
-        $projectname = $this->askFor('name', "Please enter the name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive",$input, $output);
+        $projectname = $this->dialog->askFor('name', "Please enter the name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive",$input, $output);
 
         // Check if the project exists, do use in creating a new one with the same name.
         if ($this->filesystem->projectExists($projectname)) {
