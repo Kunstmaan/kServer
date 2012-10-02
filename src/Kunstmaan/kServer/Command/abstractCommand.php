@@ -14,7 +14,7 @@ use Kunstmaan\kServer\Provider\ProcessProvider;
 use Kunstmaan\kServer\Provider\PermissionsProvider;
 use Symfony\Component\Console\Helper\DialogHelper;
 
-abstract class kServerCommand extends Command
+abstract class AbstractCommand extends Command
 {
 
     /**
