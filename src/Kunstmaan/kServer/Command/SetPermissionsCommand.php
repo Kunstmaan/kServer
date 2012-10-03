@@ -9,9 +9,15 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Cilex\Command\Command;
 
+/**
+ * SetPermissionsCommand
+ */
 class SetPermissionsCommand extends AbstractCommand
 {
 
+    /**
+     * Configures the current command.
+     */
     protected function configure()
     {
         $this
@@ -20,6 +26,14 @@ class SetPermissionsCommand extends AbstractCommand
             ->addArgument('name', InputArgument::REQUIRED, 'The name of the project');
     }
 
+    /**
+     * @param InputInterface  $input  The command inputstream
+     * @param OutputInterface $output The command outputstream
+     *
+     * @return int|void
+     *
+     * @throws \RuntimeException
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->prepareProviders();

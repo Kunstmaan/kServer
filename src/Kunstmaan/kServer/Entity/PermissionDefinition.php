@@ -1,7 +1,9 @@
 <?php
 namespace Kunstmaan\kServer\Entity;
 
-
+/**
+ * PermissionDefinition
+ */
 class PermissionDefinition
 {
 
@@ -9,14 +11,17 @@ class PermissionDefinition
      * @var string
      */
     private $name;
+
     /**
      * @var string
      */
     private $path;
+
     /**
      * @var string
      */
     private $ownership;
+
     /**
      * @var string[]
      */
@@ -30,6 +35,9 @@ class PermissionDefinition
         $this->acl[] = $acl;
     }
 
+    /**
+     * @return string[]
+     */
     public function getAcl()
     {
         return $this->acl;
@@ -82,6 +90,5 @@ class PermissionDefinition
     {
         return $this->path;
     }
-
 
 }

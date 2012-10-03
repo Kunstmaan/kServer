@@ -8,6 +8,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Cilex\Application;
 use Symfony\Component\Console\Helper\DialogHelper;
 
+/**
+ * DialogProvider
+ */
 class DialogProvider extends AbstractProvider
 {
 
@@ -26,7 +29,10 @@ class DialogProvider extends AbstractProvider
      */
     private $dialog;
 
-    function __construct($output)
+    /**
+     * @param OutputInterface $output
+     */
+    public function __construct(OutputInterface $output)
     {
         $this->output = $output;
     }
@@ -36,7 +42,7 @@ class DialogProvider extends AbstractProvider
      *
      * @param Application $app An Application instance
      */
-    function register(Application $app)
+    public function register(Application $app)
     {
         $app['dialog'] = $this;
         $this->app = $app;
@@ -44,9 +50,10 @@ class DialogProvider extends AbstractProvider
     }
 
     /**
-     * @param string $argumentname
-     * @param string $message
-     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param string         $argumentname The argument name
+     * @param string         $message      The message
+     * @param InputInterface $input        The command input stream
+     *
      * @return string
      * @throws \RuntimeException
      */
@@ -59,9 +66,14 @@ class DialogProvider extends AbstractProvider
         if (is_null($name)) {
             throw new RuntimeException("A $argumentname is required, what am I, psychic?");
         }
+
         return $name;
     }
 
+    /**
+     * @param string $question The question text
+     * @param bool   $default  The default action
+     */
     public function askConfirmation($question, $default = true)
     {
         $this->dialog->askConfirmation($this->output, $question, $default);

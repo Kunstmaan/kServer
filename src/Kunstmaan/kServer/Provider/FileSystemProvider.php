@@ -8,6 +8,9 @@ use Cilex\Application;
 use Symfony\Component\Console\Output\OutputInterface;
 use Kunstmaan\kServer\Provider\ProcessProvider;
 
+/**
+ * FileSystemProvider
+ */
 class FileSystemProvider implements ServiceProviderInterface
 {
 
@@ -26,7 +29,7 @@ class FileSystemProvider implements ServiceProviderInterface
      *
      * @param Application $app An Application instance
      */
-    function register(Application $app)
+    public function register(Application $app)
     {
         $app['filesystem'] = $this;
         $this->app = $app;
@@ -39,22 +42,26 @@ class FileSystemProvider implements ServiceProviderInterface
     {
         $finder = new Finder();
         $finder->directories()->sortByName()->in($this->app["config"]["projects"]["path"])->depth('== 0');
+
         return iterator_to_array($finder);
     }
 
     /**
-     * @param $projectname
+     * @param string $projectname
+     *
      * @return bool
      */
     public function projectExists($projectname)
     {
         $finder = new Finder();
         $finder->directories()->sortByName()->in($this->app["config"]["projects"]["path"])->depth('== 0')->name($projectname);
+
         return $finder->count() != 0;
     }
 
     /**
-     * @param $projectname
+     * @param string $projectname
+     *
      * @return string
      */
     public function getProjectDirectory($projectname)
@@ -63,7 +70,8 @@ class FileSystemProvider implements ServiceProviderInterface
     }
 
     /**
-     * @param $projectname
+     * @param string $projectname
+     *
      * @return string
      */
     public function getProjectConfigDirectory($projectname)
@@ -72,57 +80,69 @@ class FileSystemProvider implements ServiceProviderInterface
     }
 
     /**
-     * @param $projectname
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param string          $projectname The project name
+     * @param OutputInterface $output      The command output stream
      */
     public function createProjectDirectory($projectname, OutputInterface $output)
     {
         $projectDirectory = $this->getProjectDirectory($projectname);
-        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        if (is_null($this->process)) {
+            $this->process = $this->app["process"];
+        }
         $this->process->executeCommand('mkdir -p ' . $projectDirectory, $output);
     }
 
     /**
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
      */
     public function createProjectConfigDirectory(Project $project, OutputInterface $output)
     {
         $projectDirectory = $this->getProjectDirectory($project->getName());
-        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        if (is_null($this->process)) {
+            $this->process = $this->app["process"];
+        }
         $this->process->executeCommand('mkdir -p ' . $projectDirectory . '/config', $output);
     }
 
     /**
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
      */
     public function createMySQLBackupDirectory(Project $project, OutputInterface $output)
     {
         $projectDirectory = $this->getProjectDirectory($project->getName());
-        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        if (is_null($this->process)) {
+            $this->process = $this->app["process"];
+        }
         $this->process->executeCommand('mkdir -p ' . $projectDirectory . '/backup', $output);
     }
 
-    /**
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+   /**
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
+     *
      * @return string
      */
     public function getMySQLBackupDirectory(Project $project, OutputInterface $output)
     {
         $projectDirectory = $this->getProjectDirectory($project->getName());
-        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        if (is_null($this->process)) {
+            $this->process = $this->app["process"];
+        }
+
         return  $projectDirectory . '/backup';
     }
 
     /**
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
      */
     public function runTar(Project $project, OutputInterface $output)
     {
-        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        if (is_null($this->process)) {
+            $this->process = $this->app["process"];
+        }
         $this->process->executeCommand('mkdir -p ' . $this->app["config"]["projects"]["backuppath"], $output);
         $projectDirectory = $this->getProjectDirectory($project->getName());
         $excluded = '';
@@ -135,30 +155,41 @@ class FileSystemProvider implements ServiceProviderInterface
     }
 
     /**
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
      */
     public function removeProjectDirectory(Project $project, OutputInterface $output)
     {
         $projectDirectory = $this->getProjectDirectory($project->getName());
-        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        if (is_null($this->process)) {
+            $this->process = $this->app["process"];
+        }
         $this->process->executeCommand("rm -Rf " . $projectDirectory, $output);
     }
 
     /**
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
      */
     public function createCompiledVhostConfigDirectory(Project $project, OutputInterface $output)
     {
-        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        if (is_null($this->process)) {
+            $this->process = $this->app["process"];
+        }
         $this->process->executeCommand('mkdir -p /etc/apache2/vhost.d/' . $project->getName(), $output);
         $this->process->executeCommand('mkdir -p /etc/apache2/vhost.d/' . $project->getName() . "/shared", $output);
         $this->process->executeCommand('mkdir -p /etc/apache2/vhost.d/' . $project->getName() . "/nossl", $output);
         $this->process->executeCommand('mkdir -p /etc/apache2/vhost.d/' . $project->getName() . "/ssl", $output);
     }
 
-    public function getCompiledVhostConfigDirectory(Project $project, OutputInterface $output){
+    /**
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
+     *
+     * @return string
+     */
+    public function getCompiledVhostConfigDirectory(Project $project, OutputInterface $output)
+    {
         return '/etc/apache2/vhost.d/' . $project->getName();
     }
 }

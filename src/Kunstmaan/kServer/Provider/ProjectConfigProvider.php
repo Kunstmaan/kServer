@@ -9,7 +9,9 @@ use RuntimeException;
 use Cilex\Application;
 use Kunstmaan\kServer\Provider\FileSystemProvider;
 
-
+/**
+ * ProjectConfigProvider
+ */
 class ProjectConfigProvider implements ServiceProviderInterface
 {
 
@@ -23,16 +25,17 @@ class ProjectConfigProvider implements ServiceProviderInterface
      *
      * @param Application $app An Application instance
      */
-    function register(Application $app)
+    public function register(Application $app)
     {
         $app['projectconfig'] = $this;
         $this->app = $app;
     }
 
     /**
-     * @param $projectname
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @return \Kunstmaan\kServer\Entity\Project
+     * @param string          $projectname The project name
+     * @param OutputInterface $output      The command output stream
+     *
+     * @return Project
      */
     public function createNewProjectConfig($projectname, OutputInterface $output)
     {
@@ -41,13 +44,15 @@ class ProjectConfigProvider implements ServiceProviderInterface
         $projectpath = $filesystem->getProjectDirectory($projectname);
         $output->writeln("<comment>      > Creating new Project object named $projectname in $projectpath/config/project.yml</comment>");
         $project = new Project($projectname, $projectpath . '/config/project.yml');
+
         return $project;
     }
 
     /**
-     * @param $projectname
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @return \Kunstmaan\kServer\Entity\Project
+     * @param string          $projectname The project name
+     * @param OutputInterface $output      The command output stream
+     *
+     * @return Project
      */
     public function loadProjectConfig($projectname, OutputInterface $output)
     {
@@ -56,6 +61,7 @@ class ProjectConfigProvider implements ServiceProviderInterface
         $projectpath = $filesystem->getProjectDirectory($projectname);
         $project = new Project($projectname, $projectpath . '/config/project.yml');
         $project->loadConfig($this->app["config"]["skeletons"], $output);
+
         return $project;
     }
 

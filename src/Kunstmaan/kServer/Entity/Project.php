@@ -7,6 +7,9 @@ use Symfony\Component\Yaml\Yaml;
 use Kunstmaan\kServer\Skeleton\SkeletonInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Project
+ */
 class Project
 {
 
@@ -39,24 +42,27 @@ class Project
      * @var string
      */
     private $mysqlUser;
+
     /**
      * @var string
      */
     private $mysqlPassword;
+
     /**
      * @var string
      */
     private $mysqlHost;
+
     /**
      * @var int
      */
     private $mysqlPort;
 
     /**
-     * @param string $name
-     * @param string $configPath
+     * @param string $name       The project name
+     * @param string $configPath The path of the configuration file
      */
-    function __construct($name, $configPath)
+    public function __construct($name, $configPath)
     {
         $this->name = $name;
         $this->configPath = $configPath;
@@ -198,10 +204,8 @@ class Project
         return $this->mysqlUser;
     }
 
-
-
     /**
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param OutputInterface $output
      */
     public function writeConfig(OutputInterface $output)
     {
@@ -216,7 +220,7 @@ class Project
         }
         $config["kserver"]["backup"]["excluded"] = $this->getExcludedFromBackup();
 
-        foreach($this->getDependencies() as $skeletonclass){
+        foreach ($this->getDependencies() as $skeletonclass) {
             /** @var $skeleton SkeletonInterface */
             $skeleton = new $skeletonclass;
             $skeleton->writeConfig($this, $config);
@@ -228,12 +232,16 @@ class Project
     }
 
 
-    public function loadConfig($skeletons, OutputInterface $output)
+    /**
+     * @param string[]        $skeletons Skeletons array
+     * @param OutputInterface $output    The command output stream
+     */
+    public function loadConfig(array $skeletons, OutputInterface $output)
     {
         $output->writeln("<comment>      > Loading the project config from " . $this->getConfigPath() . "</comment>");
         $config = Yaml::parse($this->getConfigPath());
 
-        foreach($skeletons as $skeletonclass){
+        foreach ($skeletons as $skeletonclass) {
             /** @var $skeleton SkeletonInterface */
             $skeleton = new $skeletonclass;
             $skeleton->loadConfig($this, $config);
@@ -247,8 +255,6 @@ class Project
                 $this->addExcludedFromBackup($excluded);
             }
         }
-
-
 
         foreach ($config["kserver"]["permissions"] as $name => $pdarr) {
             $pd = new PermissionDefinition();

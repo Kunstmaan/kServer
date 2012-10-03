@@ -1,7 +1,6 @@
 <?php
 namespace Kunstmaan\kServer\Skeleton;
 
-
 use Symfony\Component\Console\Output\OutputInterface;
 use Kunstmaan\kServer\Entity\PermissionDefinition;
 use Cilex\Application;
@@ -9,7 +8,9 @@ use Kunstmaan\kServer\Entity\Project;
 use Kunstmaan\kServer\Provider\FileSystemProvider;
 use Kunstmaan\kServer\Provider\PermissionsProvider;
 
-
+/**
+ * BaseSkeleton
+ */
 class BaseSkeleton extends AbstractSkeleton
 {
 
@@ -22,9 +23,10 @@ class BaseSkeleton extends AbstractSkeleton
     }
 
     /**
-     * @param \Cilex\Application $app
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Application     $app     The application
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
+     *
      * @return mixed|void
      */
     public function create(Application $app, Project $project, OutputInterface $output)
@@ -43,9 +45,9 @@ class BaseSkeleton extends AbstractSkeleton
     }
 
     /**
-     * @param \Cilex\Application $app
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Application     $app     The application
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
      */
     public function permissions(Application $app, Project $project, OutputInterface $output)
     {
@@ -58,9 +60,10 @@ class BaseSkeleton extends AbstractSkeleton
     }
 
     /**
-     * @param \Cilex\Application $app
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Application     $app     The application
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
+     *
      * @return mixed|void
      */
     public function maintenance(Application $app, Project $project, OutputInterface $output)
@@ -69,9 +72,10 @@ class BaseSkeleton extends AbstractSkeleton
     }
 
     /**
-     * @param \Cilex\Application $app
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Application     $app     The application
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
+     *
      * @return mixed|void
      */
     public function preBackup(Application $app, Project $project, OutputInterface $output)
@@ -79,9 +83,10 @@ class BaseSkeleton extends AbstractSkeleton
     }
 
     /**
-     * @param \Cilex\Application $app
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Application     $app     The application
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
+     *
      * @return mixed|void
      */
     public function postBackup(Application $app, Project $project, OutputInterface $output)
@@ -89,9 +94,10 @@ class BaseSkeleton extends AbstractSkeleton
     }
 
     /**
-     * @param \Cilex\Application $app
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Application     $app     The application
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
+     *
      * @return mixed|void
      */
     public function preRemove(Application $app, Project $project, OutputInterface $output)
@@ -99,9 +105,10 @@ class BaseSkeleton extends AbstractSkeleton
     }
 
     /**
-     * @param \Cilex\Application $app
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Application     $app     The application
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
+     *
      * @return mixed|void
      */
     public function postRemove(Application $app, Project $project, OutputInterface $output)
@@ -112,8 +119,8 @@ class BaseSkeleton extends AbstractSkeleton
     }
 
     /**
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param $config
+     * @param Project $project The project
+     * @param array   &$config The configuration array
      */
     public function writeConfig(Project $project, &$config)
     {
@@ -121,8 +128,8 @@ class BaseSkeleton extends AbstractSkeleton
     }
 
     /**
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param $config
+     * @param Project $project The project
+     * @param array   &$config The configuration array
      */
     public function loadConfig(Project $project, &$config)
     {

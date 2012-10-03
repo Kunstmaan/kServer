@@ -9,9 +9,15 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Cilex\Command\Command;
 
+/**
+ * NewProjectCommand
+ */
 class NewProjectCommand extends AbstractCommand
 {
 
+    /**
+     * Configures the current command.
+     */
     protected function configure()
     {
         $this
@@ -20,6 +26,14 @@ class NewProjectCommand extends AbstractCommand
             ->addArgument('name', InputArgument::OPTIONAL, 'The name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive');
     }
 
+    /**
+     * @param InputInterface  $input  The command inputstream
+     * @param OutputInterface $output The command outputstream
+     *
+     * @return int|void
+     *
+     * @throws \RuntimeException
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $projectname = $this->dialog->askFor('name', "Please enter the name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive", $input);

@@ -11,9 +11,15 @@ use Cilex\Command\Command;
 use Symfony\Component\Console\Helper\DialogHelper;
 use Kunstmaan\kServer\Skeleton\SkeletonInterface;
 
+/**
+ * RemoveProjectCommand
+ */
 class RemoveProjectCommand extends AbstractCommand
 {
 
+    /**
+     * Configures the current command.
+     */
     protected function configure()
     {
         $this
@@ -22,10 +28,18 @@ class RemoveProjectCommand extends AbstractCommand
             ->addArgument('name', InputArgument::OPTIONAL, 'The name of the project.');
     }
 
+    /**
+     * @param InputInterface  $input  The command inputstream
+     * @param OutputInterface $output The command outputstream
+     *
+     * @return int|void
+     *
+     * @throws \RuntimeException
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
 
-        $projectname = $this->dialog->askFor('name', "Please enter the name of the project",$input, $output);
+        $projectname = $this->dialog->askFor('name', "Please enter the name of the project", $input, $output);
 
         // Check if the project exists, do use in creating a new one with the same name.
         if (!$this->filesystem->projectExists($projectname)) {

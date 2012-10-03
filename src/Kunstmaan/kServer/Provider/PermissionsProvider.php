@@ -9,6 +9,9 @@ use Kunstmaan\kServer\Provider\FileSystemProvider;
 use Kunstmaan\kServer\Provider\ProcessProvider;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * PermissionsProvider
+ */
 class PermissionsProvider implements ServiceProviderInterface
 {
 
@@ -27,91 +30,98 @@ class PermissionsProvider implements ServiceProviderInterface
      *
      * @param Application $app An Application instance
      */
-    function register(Application $app)
+    public function register(Application $app)
     {
         $app['permission'] = $this;
         $this->app = $app;
     }
 
     /**
-     * @param $groupname
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param string          $groupName The group name
+     * @param OutputInterface $output    The command output stream
      */
-    public function createGroupIfNeeded($groupname, OutputInterface $output)
+    public function createGroupIfNeeded($groupName, OutputInterface $output)
     {
-        if (!$this->isGroup($groupname, $output)) {
+        if (!$this->isGroup($groupName, $output)) {
             /** @var $process ProcessProvider */
             $process = $this->app["process"];
             if (PHP_OS == "Darwin") {
-                $process->executeCommand('dscl . create /groups/' . $groupname, $output);
-                $process->executeCommand('dscl . create /groups/' . $groupname . " name " . $groupname, $output);
-                $process->executeCommand('dscl . create /groups/' . $groupname . ' passwd "*"', $output);
+                $process->executeCommand('dscl . create /groups/' . $groupName, $output);
+                $process->executeCommand('dscl . create /groups/' . $groupName . " name " . $groupName, $output);
+                $process->executeCommand('dscl . create /groups/' . $groupName . ' passwd "*"', $output);
             } else {
-                $process->executeCommand('addgroup ' . $groupname, $output);
+                $process->executeCommand('addgroup ' . $groupName, $output);
             }
         }
     }
 
     /**
-     * @param $groupname
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @return mixed
+     * @param string          $groupName The group name
+     * @param OutputInterface $output    The command output stream
+     *
+     * @return bool|string
      */
-    private function isGroup($groupname, OutputInterface $output)
+    private function isGroup($groupName, OutputInterface $output)
     {
-        /** @var $process ProcessProvider */
+        /** @var ProcessProvider $process */
         $process = $this->app["process"];
         if (PHP_OS == "Darwin") {
-            return $process->executeCommand('dscl . -list /groups | grep ^' . $groupname . '$', $output, true);
+            return $process->executeCommand('dscl . -list /groups | grep ^' . $groupName . '$', $output, true);
         } else {
-            return $process->executeCommand('cat /etc/group | egrep ^' . $groupname . ':', $output, true);
+            return $process->executeCommand('cat /etc/group | egrep ^' . $groupName . ':', $output, true);
         }
     }
 
     /**
-     * @param $username
-     * @param $groupname
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param string          $userName  The user name
+     * @param string          $groupName The group name
+     * @param OutputInterface $output    The command output stream
      */
-    public function createUserIfNeeded($username, $groupname, OutputInterface $output)
+    public function createUserIfNeeded($userName, $groupName, OutputInterface $output)
     {
-        if (!$this->isUser($username, $output)) {
-            /** @var $process ProcessProvider */
+        if (!$this->isUser($userName, $output)) {
+            /* @var ProcessProvider $process */
             $process = $this->app["process"];
             if (PHP_OS == "Darwin") {
                 $maxid = $process->executeCommand("dscl . list /Users UniqueID | awk '{print $2}' | sort -ug | tail -1", $output);
                 $maxid = $maxid + 1;
-                $process->executeCommand('dscl . create /Users/' . $username, $output);
-                $process->executeCommand('dscl . create /Users/' . $username . ' UserShell /bin/bash', $output);
-                $process->executeCommand('dscl . create /Users/' . $username . ' NFSHomeDirectory /var/www/' . $username, $output);
-                $process->executeCommand('dscl . create /Users/' . $username . ' PrimaryGroupID 20', $output);
-                $process->executeCommand('dscl . create /Users/' . $username . ' UniqueID ' . $maxid, $output);
-                $process->executeCommand('dscl . append /Groups/' . $groupname . ' GroupMembership ' . $username, $output);
-                $process->executeCommand('defaults write /Library/Preferences/com.apple.loginwindow HiddenUsersList -array-add ' . $username, $output);
+                $process->executeCommand('dscl . create /Users/' . $userName, $output);
+                $process->executeCommand('dscl . create /Users/' . $userName . ' UserShell /bin/bash', $output);
+                $process->executeCommand('dscl . create /Users/' . $userName . ' NFSHomeDirectory /var/www/' . $userName, $output);
+                $process->executeCommand('dscl . create /Users/' . $userName . ' PrimaryGroupID 20', $output);
+                $process->executeCommand('dscl . create /Users/' . $userName . ' UniqueID ' . $maxid, $output);
+                $process->executeCommand('dscl . append /Groups/' . $groupName . ' GroupMembership ' . $userName, $output);
+                $process->executeCommand('defaults write /Library/Preferences/com.apple.loginwindow HiddenUsersList -array-add ' . $userName, $output);
             } else {
-                $process->executeCommand('adduser --firstuid 1000 --lastuid 1999 --disabled-password --system --quiet --ingroup ' . $groupname . ' --home "/var/www/' . $username . '" --no-create-home --shell /bin/bash ' . $username, $output);
+                $process->executeCommand('adduser --firstuid 1000 --lastuid 1999 --disabled-password --system --quiet --ingroup ' . $groupName . ' --home "/var/www/' . $userName . '" --no-create-home --shell /bin/bash ' . $userName, $output);
             }
         }
     }
 
     /**
-     * @param $username
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param string          $userName The user name
+     * @param OutputInterface $output   The command output stream
+     *
      * @return mixed
      */
-    private function isUser($username, OutputInterface $output)
+    private function isUser($userName, OutputInterface $output)
     {
-        if (is_null($this->process)){ $this->process = $this->app["process"]; }
-        return $this->process->executeCommand('id ' . $username, $output, true);
+        if (is_null($this->process)) {
+            $this->process = $this->app["process"];
+        }
+
+        return $this->process->executeCommand('id ' . $userName, $output, true);
     }
 
     /**
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
      */
     public function applyOwnership(Project $project, OutputInterface $output)
     {
-        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        if (is_null($this->process)) {
+            $this->process = $this->app["process"];
+        }
         /** @var $filesystem FileSystemProvider */
         $filesystem = $this->app['filesystem'];
         foreach ($project->getPermissionDefinitions() as $pd) {
@@ -120,12 +130,14 @@ class PermissionsProvider implements ServiceProviderInterface
     }
 
     /**
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
      */
     public function applyPermissions(Project $project, OutputInterface $output)
     {
-        if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        if (is_null($this->process)) {
+            $this->process = $this->app["process"];
+        }
         /** @var $filesystem FileSystemProvider */
         $filesystem = $this->app['filesystem'];
         if ($this->app["config"]["permissions"]["develmode"]) {
@@ -141,29 +153,33 @@ class PermissionsProvider implements ServiceProviderInterface
     }
 
     /**
-     * @param $username
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param string          $userName The user name
+     * @param OutputInterface $output   The command output stream
      */
-    public function killProcesses($username, OutputInterface $output)
+    public function killProcesses($userName, OutputInterface $output)
     {
-        if (is_null($this->process)){ $this->process = $this->app["process"]; }
-        $this->process->executeCommand("su - " . $username . " -c 'kill -9 -1'", $output, true);
+        if (is_null($this->process)) {
+            $this->process = $this->app["process"];
+        }
+        $this->process->executeCommand("su - " . $userName . " -c 'kill -9 -1'", $output, true);
     }
 
     /**
-     * @param $username
-     * @param $groupname
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param string          $userName  The user name
+     * @param string          $groupName The group name
+     * @param OutputInterface $output    The command output stream
      */
-    public function removeUser($username, $groupname, OutputInterface $output)
+    public function removeUser($userName, $groupName, OutputInterface $output)
     {
-        if ($this->isUser($username, $output)) {
-            if (is_null($this->process)){ $this->process = $this->app["process"]; }
+        if ($this->isUser($userName, $output)) {
+            if (is_null($this->process)) {
+                $this->process = $this->app["process"];
+            }
             if (PHP_OS == "Darwin") {
-                $this->process->executeCommand('dscl . delete /Users/' . $username, $output);
-                $this->process->executeCommand('dscl . delete /Groups/' . $groupname, $output);
+                $this->process->executeCommand('dscl . delete /Users/' . $userName, $output);
+                $this->process->executeCommand('dscl . delete /Groups/' . $groupName, $output);
             } else {
-                $this->process->executeCommand('userdel ' . $username, $output);
+                $this->process->executeCommand('userdel ' . $userName, $output);
             }
         }
     }

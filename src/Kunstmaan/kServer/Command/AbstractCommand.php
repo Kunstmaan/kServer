@@ -13,6 +13,9 @@ use Kunstmaan\kServer\Provider\ProcessProvider;
 use Kunstmaan\kServer\Provider\PermissionsProvider;
 use Kunstmaan\kServer\Provider\DialogProvider;
 
+/**
+ * AbstractCommand
+ */
 abstract class AbstractCommand extends Command
 {
 
@@ -20,18 +23,22 @@ abstract class AbstractCommand extends Command
      * @var FileSystemProvider
      */
     protected $filesystem;
+
     /**
      * @var ProjectConfigProvider
      */
     protected $projectConfig;
+
     /**
      * @var SkeletonProvider
      */
     protected $skeleton;
+
     /**
      * @var ProcessProvider
      */
     protected $process;
+
     /**
      * @var PermissionsProvider
      */
@@ -50,7 +57,7 @@ abstract class AbstractCommand extends Command
     /**
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
-    function __construct(OutputInterface $output)
+    public function __construct(OutputInterface $output)
     {
         $this->filesystem = $this->getService('filesystem');
         $this->projectConfig = $this->getService('projectconfig');

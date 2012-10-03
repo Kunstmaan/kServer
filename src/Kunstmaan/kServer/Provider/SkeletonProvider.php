@@ -10,6 +10,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Cilex\Application;
 
+/**
+ * SkeletonProvider
+ */
 class SkeletonProvider implements ServiceProviderInterface
 {
 
@@ -23,18 +26,18 @@ class SkeletonProvider implements ServiceProviderInterface
      *
      * @param Application $app An Application instance
      */
-    function register(Application $app)
+    public function register(Application $app)
     {
         $app['skeleton'] = $this;
         $this->app = $app;
     }
 
     /**
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Kunstmaan\kServer\Skeleton\AbstractSkeleton $skeleton
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Project          $project  The project
+     * @param AbstractSkeleton $skeleton The skeleton
+     * @param OutputInterface  $output   The command output stream
      */
-    function applySkeleton(Project $project, AbstractSkeleton $skeleton, OutputInterface $output)
+    public function applySkeleton(Project $project, AbstractSkeleton $skeleton, OutputInterface $output)
     {
         $output->writeln("<comment>      > Applying " . get_class($skeleton) . " to " . $project->getName() . " </comment>");
         $project->addDependency($skeleton);
@@ -42,13 +45,17 @@ class SkeletonProvider implements ServiceProviderInterface
     }
 
     /**
-     * @param $skeletonname
+     * @param string $skeletonname
+     *
      * @return SkeletonInterface
+     *
      * @throws \RuntimeException
      */
-    function findSkeleton($skeletonname){
-        if(isset($this->app["config"]["skeletons"][$skeletonname])){
+    public function findSkeleton($skeletonname)
+    {
+        if (isset($this->app["config"]["skeletons"][$skeletonname])) {
             $skeleton = $this->app["config"]["skeletons"][$skeletonname];
+
             return new $skeleton;
         }
         throw new RuntimeException("Skeleton not found!");

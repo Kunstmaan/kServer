@@ -1,7 +1,6 @@
 <?php
 namespace Kunstmaan\kServer\Skeleton;
 
-
 use Symfony\Component\Console\Output\OutputInterface;
 use Cilex\Application;
 use Kunstmaan\kServer\Entity\Project;
@@ -11,6 +10,9 @@ use Kunstmaan\kServer\Provider\SkeletonProvider;
 use Kunstmaan\kServer\Provider\ProcessProvider;
 use Kunstmaan\kServer\Provider\PermissionsProvider;
 
+/**
+ * AbstractSkeleton
+ */
 abstract class AbstractSkeleton
 {
 
@@ -18,18 +20,22 @@ abstract class AbstractSkeleton
      * @var FileSystemProvider
      */
     protected $filesystem;
+
     /**
      * @var ProjectConfigProvider
      */
     protected $projectConfig;
+
     /**
      * @var SkeletonProvider
      */
     protected $skeleton;
+
     /**
      * @var ProcessProvider
      */
     protected $process;
+
     /**
      * @var PermissionsProvider
      */
@@ -41,9 +47,10 @@ abstract class AbstractSkeleton
     protected $output;
 
     /**
-     * @param \Cilex\Application $app
+     * @param Application     $app    The app
+     * @param OutputInterface $output The command output stream
      */
-    function __construct(Application $app, OutputInterface $output)
+    public function __construct(Application $app, OutputInterface $output)
     {
         $this->filesystem = $app['filesystem'];
         $this->permission = $app['permission'];
@@ -59,62 +66,68 @@ abstract class AbstractSkeleton
     abstract public function getName();
 
     /**
-     * @param \Cilex\Application $app
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Application     $app     The application
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
+     *
      * @return mixed
      */
-    abstract public function create(Project $project, );
+    abstract public function create(Application $app, Project $project, OutputInterface $output);
 
     /**
-     * @param \Cilex\Application $app
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Application     $app     The application
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
+     *
      * @return mixed
      */
     abstract public function maintenance(Application $app, Project $project, OutputInterface $output);
 
     /**
-     * @param \Cilex\Application $app
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Application     $app     The application
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
+     *
      * @return mixed
      */
     abstract public function preBackup(Application $app, Project $project, OutputInterface $output);
 
     /**
-     * @param \Cilex\Application $app
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Application     $app     The application
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
+     *
      * @return mixed
      */
     abstract public function postBackup(Application $app, Project $project, OutputInterface $output);
 
     /**
-     * @param \Cilex\Application $app
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Application     $app     The application
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
+     *
      * @return mixed
      */
     abstract public function preRemove(Application $app, Project $project, OutputInterface $output);
 
     /**
-     * @param \Cilex\Application $app
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param Application     $app     The application
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
+     *
      * @return mixed
      */
     abstract public function postRemove(Application $app, Project $project, OutputInterface $output);
 
     /**
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param $config
+     * @param Project $project The project
+     * @param array   &$config The configuration array
      */
     abstract public function writeConfig(Project $project, &$config);
 
     /**
-     * @param \Kunstmaan\kServer\Entity\Project $project
-     * @param $config
+     * @param Project $project The project
+     * @param array   &$config The configuration array
      */
     abstract public function loadConfig(Project $project, &$config);
 
