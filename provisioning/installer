@@ -14,6 +14,9 @@ add-apt-repository -y ppa:ondrej/php5
 add-apt-repository -y ppa:arnaud-hartmann/glances-stable
 wget -O /etc/apt/sources.list.d/newrelic.list http://download.newrelic.com/debian/newrelic.list
 apt-key adv --keyserver hkp://subkeys.pgp.net --recv-keys 548C16BF
+gpg --keyserver hkp://keys.gnupg.net --recv-keys 1C4CBDCDCD2EFD2A
+gpg -a --export CD2EFD2A | apt-key add -
+echo "deb http://repo.percona.com/apt precise main" > /etc/apt/sources.list.d/percona.list
 apt-get update
 apt-get autoclean
 yes | apt-get -q -y -o 'DPkg::Options::=--force-confold' dist-upgrade
@@ -23,8 +26,15 @@ echo "##### Setting up ACL"
 
 yes | apt-get -y -q install acl
 cat /etc/fstab | grep -v precise64-root > /etc/fstab.tmp
-cat /etc/fstab | grep precise64-root | sed "s/remount-ro/remount-ro,acl/" >> /etc/fstab.tmp
+cat /etc/fstab | grep precise64-root | sed "s/remount-ro/remount-ro,acl,noatime,nodiratime/" >> /etc/fstab.tmp
 mv /etc/fstab.tmp /etc/fstab
+
+if cat /etc/fstab | grep tmpfs; then
+    echo "Not updating fstab, already done"
+else
+    echo "tmpfs /tmp tmpfs defaults,nosuid,noatime 0 0" >> /etc/fstab
+fi
+
 mount -a
 
 echo "##### Configuring the scheduler..."
@@ -42,10 +52,14 @@ service nscd start
 sysctl -w net.core.somaxconn=100000
 sysctl -w net.ipv4.ip_local_port_range="10000 61000"
 sysctl -w net.ipv4.tcp_tw_reuse=1
+sysctl -w vm.swappiness=0
 cat $INSTALLBASE/provisioning/etc/sysctl.d/50-tuning.conf > /etc/sysctl.d/50-tuning.conf
 
 ulimit -n 100000
 cat $INSTALLBASE/provisioning/etc/security/limits.conf > /etc/security/limits.conf
+
+echo noop > /sys/block/sda/queue/scheduler
+## TODO add this to rc.local
 
 echo "##### Installing apache"
 yes | apt-get -y -q install apache2 apache2-mpm-worker apache2-threaded-dev libapache2-mod-rpaf libapache2-mod-fastcgi
@@ -57,8 +71,10 @@ a2dissite 000-default
 
 
 echo "##### Installing mysql"
-yes | apt-get -y -q install mysql-server
+
+yes | apt-get -y -q install percona-server-server-5.5 percona-server-client-5.5 percona-toolkit
 mysql -uroot -e "UPDATE mysql.user SET Password = PASSWORD('$MYSQLROOTPASSWD') WHERE User = 'root'; DELETE FROM mysql.user WHERE User=''; DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); DROP DATABASE IF EXISTS test; FLUSH PRIVILEGES;"
+cp $INSTALLBASE/provisioning/etc/mysql/tuning.cnf /etc/mysql/conf.d/
 
 echo "##### Installing PHP"
 yes | apt-get -y -q install sysv-rc-conf php5-fpm php5-mysqlnd php5-mcrypt php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev
