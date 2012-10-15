@@ -1,4 +1,4 @@
-hostname: 
+hostname: amos.kunstmaan.be
 
 projects:
     path:       "/var/www"
@@ -13,6 +13,7 @@ mysql:
 
 apache:
     serveradmin: support@kunstmaan.be
+    user: www-data
 
 skeletons:
     base:    Kunstmaan\kServer\Skeleton\BaseSkeleton
