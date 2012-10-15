@@ -1,6 +1,8 @@
 <?php
 namespace Kunstmaan\kServer\Command;
 
+use Kunstmaan\kServer\Helper\OutputUtil;
+
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\ArrayInput;
 use RuntimeException;
@@ -25,7 +27,8 @@ class RemoveProjectCommand extends AbstractCommand
         $this
             ->setName('remove')
             ->setDescription('Removes a kServer project')
-            ->addArgument('name', InputArgument::OPTIONAL, 'The name of the project.');
+            ->addArgument('name', InputArgument::OPTIONAL, 'The name of the project.')
+            ->addArgument("--force", null, InputArgument::OPTIONAL, 'Does not ask before removing');
     }
 
     /**
@@ -38,7 +41,6 @@ class RemoveProjectCommand extends AbstractCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-
         $projectname = $this->dialog->askFor('name', "Please enter the name of the project", $input, $output);
 
         // Check if the project exists, do use in creating a new one with the same name.
@@ -48,11 +50,12 @@ class RemoveProjectCommand extends AbstractCommand
 
         /** @var $dialog DialogHelper */
         $dialog = $this->getHelperSet()->get('dialog');
-        if (!$dialog->askConfirmation($output, '<question>Are you sure you want to remove ' . $projectname . '?</question>', false)) {
+        $forceArgument = $input->getArgument('--force');
+        if (empty($forceArgument) && !$dialog->askConfirmation($output, '<question>Are you sure you want to remove ' . $projectname . '?</question>', false)) {
             return;
         }
 
-        $output->writeln("<info> ---> Removing project $projectname</info>");
+        OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, "Removing project $projectname");
 
         $command = $this->getApplication()->find('backup');
         $arguments = array(
@@ -70,9 +73,8 @@ class RemoveProjectCommand extends AbstractCommand
 
         // Run the preRemove hook for all dependencies
         foreach ($project->getDependencies() as $skeletonName => $skeletonClass) {
-            $output->writeln("<comment>      > Running preRemove of the $skeletonName skeleton</comment>");
-            /** @var $skeleton SkeletonInterface */
-            $skeleton = new $skeletonClass;
+            OutputUtil::log($output, OutputInterface::VERBOSITY_VERBOSE, "Running preRemove of the $skeletonName skeleton");
+            $skeleton = $this->skeleton->findSkeleton($skeletonName);
             $skeleton->preRemove($this->getContainer(), $project, $output);
         }
 
@@ -80,9 +82,8 @@ class RemoveProjectCommand extends AbstractCommand
 
         // Run the postRemove hook for all dependencies
         foreach ($project->getDependencies() as $skeletonName => $skeletonClass) {
-            $output->writeln("<comment>      > Running postRemove of the $skeletonName skeleton</comment>");
-            /** @var $skeleton SkeletonInterface */
-            $skeleton = new $skeletonClass;
+            OutputUtil::log($output, OutputInterface::VERBOSITY_VERBOSE, "Running postRemove of the $skeletonName skeleton");
+            $skeleton = $this->skeleton->findSkeleton($skeletonName);
             $skeleton->postRemove($this->getContainer(), $project, $output);
         }
     }

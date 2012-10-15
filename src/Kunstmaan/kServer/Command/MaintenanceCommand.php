@@ -1,6 +1,8 @@
 <?php
 namespace Kunstmaan\kServer\Command;
 
+use Kunstmaan\kServer\Helper\OutputUtil;
+
 use Symfony\Component\Console\Input\InputArgument;
 use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
@@ -35,18 +37,15 @@ class MaintenanceCommand extends AbstractCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->prepareProviders();
-
         $projects = $this->filesystem->getProjects();
         /** @var $projectFile SplFileInfo */
         foreach ($projects as $projectFile) {
             $projectname = $projectFile->getFilename();
-            $output->writeln("<info> ---> Running maintenance on project $projectname</info>");
+            OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, "Running maintenance on project $projectname");
             $project = $this->projectConfig->loadProjectConfig($projectname, $output);
             foreach ($project->getDependencies() as $skeletonName => $skeletonClass) {
-                $output->writeln("<comment>      > Running maintenance of the $skeletonName skeleton</comment>");
-                /** @var $skeleton AbstractSkeleton */
-                $skeleton = new $skeletonClass($this->getContainer());
+                OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, "Running maintenance of the $skeletonName skeleton");
+                $skeleton = $this->skeleton->findSkeleton($skeletonName);
                 $skeleton->maintenance($this->getContainer(), $project, $output);
             }
         }

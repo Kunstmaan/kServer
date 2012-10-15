@@ -76,7 +76,7 @@ class FileSystemProvider implements ServiceProviderInterface
      */
     public function getProjectConfigDirectory($projectname)
     {
-        return $this->getProjectDirectory($projectname)."/config";
+        return $this->getProjectDirectory($projectname)."/current/config";
     }
 
     /**
@@ -102,36 +102,39 @@ class FileSystemProvider implements ServiceProviderInterface
         if (is_null($this->process)) {
             $this->process = $this->app["process"];
         }
-        $this->process->executeCommand('mkdir -p ' . $projectDirectory . '/config', $output);
+        $this->process->executeCommand('mkdir -p ' . $projectDirectory . '/releases/init/config', $output);
+        $this->process->executeCommand('ln -s ' . $projectDirectory . '/releases/init/ '.$projectDirectory.'/current', $output);
     }
 
     /**
      * @param Project         $project The project
      * @param OutputInterface $output  The command output stream
+     * @param string          $path    The relative path in the project folder
      */
-    public function createMySQLBackupDirectory(Project $project, OutputInterface $output)
+    public function createDirectory(Project $project, OutputInterface $output, $path)
     {
         $projectDirectory = $this->getProjectDirectory($project->getName());
         if (is_null($this->process)) {
             $this->process = $this->app["process"];
         }
-        $this->process->executeCommand('mkdir -p ' . $projectDirectory . '/backup', $output);
+        $this->process->executeCommand('mkdir -p ' . $projectDirectory . '/' . $path, $output);
     }
 
    /**
      * @param Project         $project The project
      * @param OutputInterface $output  The command output stream
+     * @param string          $path    The relative path in the project folder
      *
      * @return string
      */
-    public function getMySQLBackupDirectory(Project $project, OutputInterface $output)
+    public function getDirectory(Project $project, OutputInterface $output, $path)
     {
         $projectDirectory = $this->getProjectDirectory($project->getName());
         if (is_null($this->process)) {
             $this->process = $this->app["process"];
         }
 
-        return  $projectDirectory . '/backup';
+        return  $projectDirectory . '/' . $path;
     }
 
     /**

@@ -120,15 +120,15 @@ abstract class AbstractSkeleton
     abstract public function postRemove(Application $app, Project $project, OutputInterface $output);
 
     /**
-     * @param Project $project The project
-     * @param array   &$config The configuration array
+     * @param Project      $project The project
+     * @param \ArrayObject $config  The configuration array
      */
-    abstract public function writeConfig(Project $project, &$config);
+    abstract public function writeConfig(Project $project, \ArrayObject $config);
 
     /**
-     * @param Project $project The project
-     * @param array   &$config The configuration array
+     * @param Project      $project The project
+     * @param \ArrayObject $config  The configuration array
      */
-    abstract public function loadConfig(Project $project, &$config);
+    abstract public function loadConfig(Project $project, \ArrayObject $config);
 
 }

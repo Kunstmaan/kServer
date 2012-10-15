@@ -2,6 +2,8 @@
 
 namespace Kunstmaan\kServer\Provider;
 
+use Kunstmaan\kServer\Helper\OutputUtil;
+
 use Cilex\ServiceProviderInterface;
 use Kunstmaan\kServer\Skeleton\AbstractSkeleton;
 use Kunstmaan\kServer\Skeleton\SkeletonInterface;
@@ -22,6 +24,19 @@ class SkeletonProvider implements ServiceProviderInterface
     private $app;
 
     /**
+     * @var OutputInterface
+     */
+    private $output;
+
+    /**
+     * @param OutputInterface $output
+     */
+    public function __construct(OutputInterface $output)
+    {
+        $this->output = $output;
+    }
+
+    /**
      * Registers services on the given app.
      *
      * @param Application $app An Application instance
@@ -39,7 +54,7 @@ class SkeletonProvider implements ServiceProviderInterface
      */
     public function applySkeleton(Project $project, AbstractSkeleton $skeleton, OutputInterface $output)
     {
-        $output->writeln("<comment>      > Applying " . get_class($skeleton) . " to " . $project->getName() . " </comment>");
+        OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, "Applying " . get_class($skeleton) . " to " . $project->getName());
         $project->addDependency($skeleton);
         $skeleton->create($this->app, $project, $output);
     }
@@ -56,7 +71,7 @@ class SkeletonProvider implements ServiceProviderInterface
         if (isset($this->app["config"]["skeletons"][$skeletonname])) {
             $skeleton = $this->app["config"]["skeletons"][$skeletonname];
 
-            return new $skeleton;
+            return new $skeleton($this->app, $this->output);
         }
         throw new RuntimeException("Skeleton not found!");
     }

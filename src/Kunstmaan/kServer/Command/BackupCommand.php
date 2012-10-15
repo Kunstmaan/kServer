@@ -1,6 +1,8 @@
 <?php
 namespace Kunstmaan\kServer\Command;
 
+use Kunstmaan\kServer\Helper\OutputUtil;
+
 use Symfony\Component\Console\Input\InputArgument;
 use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
@@ -38,8 +40,6 @@ class BackupCommand extends AbstractCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->prepareProviders();
-
         $onlyprojectname = $input->getArgument('project');
 
         // Loop over all the projects to run the backup
@@ -54,14 +54,14 @@ class BackupCommand extends AbstractCommand
                 continue;
             }
 
-            $output->writeln("<info> ---> Running backup on project $projectname</info>");
+            OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, "Running backup on project $projectname");
             $project = $this->projectConfig->loadProjectConfig($projectname, $output);
 
             // Run the preBackup hook for all dependencies
             foreach ($project->getDependencies() as $skeletonName => $skeletonClass) {
-                $output->writeln("<comment>      > Running preBackup of the $skeletonName skeleton</comment>");
+                OutputUtil::log($output, OutputInterface::VERBOSITY_VERBOSE, "Running preBackup of the $skeletonName skeleton");
                 /** @var $skeleton SkeletonInterface */
-                $skeleton = new $skeletonClass;
+                $skeleton = $this->skeleton->findSkeleton($skeletonName);
                 $skeleton->preBackup($this->getContainer(), $project, $output);
             }
 
@@ -72,9 +72,8 @@ class BackupCommand extends AbstractCommand
 
             // Run the postBackup hook for all dependencies
             foreach ($project->getDependencies() as $skeletonName => $skeletonClass) {
-                $output->writeln("<comment>      > Running postBackup of the $skeletonName skeleton</comment>");
-                /** @var $skeleton SkeletonInterface */
-                $skeleton = new $skeletonClass;
+                OutputUtil::log($output, OutputInterface::VERBOSITY_VERBOSE, "Running postBackup of the $skeletonName skeleton");
+                $skeleton = $this->skeleton->findSkeleton($skeletonName);
                 $skeleton->postBackup($this->getContainer(), $project, $output);
             }
         }

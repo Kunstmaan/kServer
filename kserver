@@ -9,7 +9,7 @@ $output = new Symfony\Component\Console\Output\ConsoleOutput();
 $app->register(new \Cilex\Provider\ConfigServiceProvider(), array('config.path' => __DIR__."/config/config.yml"));
 $app->register(new \Kunstmaan\kServer\Provider\FileSystemProvider());
 $app->register(new \Kunstmaan\kServer\Provider\ProcessProvider());
-$app->register(new \Kunstmaan\kServer\Provider\SkeletonProvider());
+$app->register(new \Kunstmaan\kServer\Provider\SkeletonProvider($output));
 $app->register(new \Kunstmaan\kServer\Provider\ProjectConfigProvider());
 $app->register(new \Kunstmaan\kServer\Provider\PermissionsProvider());
 $app->register(new \Kunstmaan\kServer\Provider\DialogProvider($output));

@@ -1,6 +1,10 @@
 <?php
 namespace Kunstmaan\kServer\Skeleton;
 
+use Kunstmaan\kServer\Entity\PermissionDefinition;
+
+use Kunstmaan\kServer\Entity\ApacheConfig;
+
 use Cilex\Application;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -14,12 +18,14 @@ use Kunstmaan\kServer\Provider\FileSystemProvider;
 class ApacheSkeleton extends AbstractSkeleton
 {
 
+    const NAME = "apache";
+
     /**
      * @return string
      */
     public function getName()
     {
-        return "apache";
+        return ApacheSkeleton::NAME;
     }
 
     /**
@@ -35,7 +41,45 @@ class ApacheSkeleton extends AbstractSkeleton
         $process = $app["process"];
         /** @var $filesystem FileSystemProvider */
         $filesystem = $app["filesystem"];
+        /** @var $console \Symfony\Component\Console\Application */
+        $console = $app['console'];
+        /** @var $dialog DialogHelper */
+        $dialog = $console->getHelperSet()->get('dialog');
+
+        $apacheConfig = new ApacheConfig();
+
+        { // url
+            $defaultUrl = "www.".$project->getName().".com";
+            $apacheConfig->setUrl($dialog->ask($output, '      <question>Enter the base url: ['.$defaultUrl.'] </question>', $defaultUrl));
+        }
+
+        { // url aliases
+            $aliases = array();
+            $alias = null;
+            while (1==1) {
+                $alias = $dialog->ask($output, '      <question>Add an url alias (leave empty to stop adding): </question>');
+                if (empty($alias)) {
+                    break;
+                } else {
+                    $aliases[] = $alias;
+                }
+            }
+            $apacheConfig->setAliases($aliases);
+        }
+
+        $apacheConfig->setWebDir("web");
+
+        $project->setConfiguration(ApacheSkeleton::NAME, $apacheConfig);
         $process->executeCommand("rsync -avh " . $this->getVhostTemplateDir() . " " . $filesystem->getProjectConfigDirectory($project->getName()), $output);
+
+        $permissionDefinition = new PermissionDefinition();
+        $permissionDefinition->setName("apache");
+        $permissionDefinition->setPath("/");
+        $permissionDefinition->addAcl("-R -m u:" . $app["config"]["apache"]["user"] . ":r-X");
+        $project->addPermissionDefinition($permissionDefinition);
+
+        $filesystem->createDirectory($project, $output, "apachelogs");
+        $project->setLogPath("apachelogs");
     }
 
     /**
@@ -54,36 +98,42 @@ class ApacheSkeleton extends AbstractSkeleton
         $filesystem = $app["filesystem"];
         $filesystem->createCompiledVhostConfigDirectory($project, $output);
 
+        $localAliases = array();
+        $localAliases[] = $project->getName() . "." . $app["config"]["hostname"];
+        $localAliases[] = "www." . $project->getName() . "." . $app["config"]["hostname"];
+
+        $apacheConf = $project->getConfiguration(ApacheSkeleton::NAME);
+
+        $configRenderParams = array(
+                "project" => $project,
+                "configLocation" => "vhost.d/".$project->getName(),
+                "serverAdmin" => "support@kunstmaan.be",
+                "apacheConfig" => $apacheConf,
+                "localAliases" => $localAliases,
+                "documentRoot" => $app["config"]["projects"]["path"] . "/" . $project->getName() . "/current/" . $apacheConf->getWebDir());
+
         $finder = new Finder();
         $finder->files()->in($this->getVhostSharedConfigDir($app, $project))->name("*.conf.twig");
         $sharedConfigs = array();
         foreach ($finder as $sharedConfig) {
-            $shared = $app['twig']->render($this->getVhostSharedConfigDir($app, $project) . "/" . $sharedConfig->getFilename(), array(
-                "project" => $project
-            ));
+            $shared = $app['twig']->render($this->getVhostSharedConfigDir($app, $project) . "/" . $sharedConfig->getFilename(), $configRenderParams);
             file_put_contents($this->getCompiledVhostSharedConfigDir($app, $project, $output) . "/" .str_replace(".twig", "", $sharedConfig->getFilename()), $shared);
         }
         $finder = new Finder();
         $finder->files()->in($this->getVhostNoSSLConfigDir($app, $project))->name("*.conf.twig");
         $nosslConfigs = array();
         foreach ($finder as $nosslConfig) {
-            $nossl = $app['twig']->render($this->getVhostNoSSLConfigDir($app, $project) . "/" .$nosslConfig->getFilename(), array(
-                "project" => $project
-            ));
+            $nossl = $app['twig']->render($this->getVhostNoSSLConfigDir($app, $project) . "/" .$nosslConfig->getFilename(), $configRenderParams);
             file_put_contents($this->getCompiledVhostNoSSlConfigDir($app, $project, $output) . "/" .str_replace(".twig", "", $nosslConfig->getFilename()), $nossl);
         }
         $finder = new Finder();
         $finder->files()->in($this->getVhostSSLConfigDir($app, $project))->name("*.conf.twig");
         $sslConfig = array();
         foreach ($finder as $sslConfig) {
-            $ssl = $app['twig']->render($this->getVhostSSLConfigDir($app, $project) . "/" .$sslConfig->getFilename(), array(
-                "project" => $project
-            ));
+            $ssl = $app['twig']->render($this->getVhostSSLConfigDir($app, $project) . "/" .$sslConfig->getFilename(), $configRenderParams);
             file_put_contents($this->getCompiledVhostSSLConfigDir($app, $project, $output) . "/" .str_replace(".twig", "", $sslConfig->getFilename()), $ssl);
         }
-        $vhost = $app['twig']->render($this->getVhostConfigDir($app, $project) . '/vhost.conf.twig', array(
-            "project" => $project
-        ));
+        $vhost = $app['twig']->render($this->getVhostConfigDir($app, $project) . '/vhost.conf.twig', $configRenderParams);
         file_put_contents($this->getCompiledVhostConfigDir($app, $project, $output) . "/vhost.conf", $vhost);
         $process->executeCommand("ln -sf " . $this->getCompiledVhostConfigDir($app, $project, $output) . "/vhost.conf /etc/apache2/sites-available/" . $project->getName(), $output);
         $process->executeCommand("a2ensite " . $project->getName(), $output);
@@ -138,21 +188,41 @@ class ApacheSkeleton extends AbstractSkeleton
     }
 
     /**
-     * @param Project $project The project
-     * @param array   &$config The configuration array
+     * @param Project      $project The project
+     * @param \ArrayObject $config  The configuration array
      */
-    public function writeConfig(Project $project, &$config)
+    public function writeConfig(Project $project, \ArrayObject $config)
     {
-        // TODO: Implement writeConfig() method.
+        /* @var $apacheConfig ApacheConfig */
+        $apacheConfig = $project->getConfiguration(ApacheSkeleton::NAME);
+        if (!is_null($apacheConfig->getUrl())) {
+            $config["url"] = $apacheConfig->getUrl();
+        }
+        if (!is_null($apacheConfig->getAliases())) {
+            $config["aliases"] = $apacheConfig->getAliases();
+        }
+        if (!is_null($apacheConfig->getWebDir())) {
+            $config["webdir"] = $apacheConfig->getWebDir();
+        }
     }
 
     /**
-     * @param Project $project The project
-     * @param array   &$config The configuration array
+     * @param Project      $project The project
+     * @param \ArrayObject $config  The configuration array
      */
-    public function loadConfig(Project $project, &$config)
+    public function loadConfig(Project $project, \ArrayObject $config)
     {
-        // TODO: Implement loadConfig() method.
+        $apacheConfig = new ApacheConfig();
+        if (isset($config["url"])) {
+            $apacheConfig->setUrl($config["url"]);
+        }
+        if (isset($config["aliases"])) {
+            $apacheConfig->setAliases($config["aliases"]);
+        }
+        if (isset($config["webdir"])) {
+            $apacheConfig->setWebDir($config["webdir"]);
+        }
+        $project->setConfiguration(ApacheSkeleton::NAME, $apacheConfig);
     }
 
     /**

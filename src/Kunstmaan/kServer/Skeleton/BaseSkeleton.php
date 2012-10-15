@@ -14,12 +14,14 @@ use Kunstmaan\kServer\Provider\PermissionsProvider;
 class BaseSkeleton extends AbstractSkeleton
 {
 
+    const NAME = "base";
+
     /**
      * @return string
      */
     public function getName()
     {
-        return "base";
+        return BaseSkeleton::NAME;
     }
 
     /**
@@ -34,14 +36,27 @@ class BaseSkeleton extends AbstractSkeleton
         /** @var $filesystem FileSystemProvider */
         $filesystem = $app["filesystem"];
         $filesystem->createProjectConfigDirectory($project, $output);
-        $permissionDefinition = new PermissionDefinition();
-        $permissionDefinition->setName("root");
-        $permissionDefinition->setPath("/");
-        $permissionDefinition->setOwnership("-R root." . $project->getName());
-        $permissionDefinition->addAcl("-R -m user::rw-");
-        $permissionDefinition->addAcl("-R -m group::---");
-        $permissionDefinition->addAcl("-R -m other::---");
-        $project->addPermissionDefinition($permissionDefinition);
+        $filesystem->createDirectory($project, $output, 'current/web');
+        {
+            $permissionDefinition = new PermissionDefinition();
+            $permissionDefinition->setName("root");
+            $permissionDefinition->setPath("/");
+            $permissionDefinition->setOwnership("-R " . $project->getName() . "." . $project->getName());
+            $permissionDefinition->addAcl("-R -m user::rwx");
+            $permissionDefinition->addAcl("-R -m group::---");
+            $permissionDefinition->addAcl("-R -m other::---");
+            $project->addPermissionDefinition($permissionDefinition);
+        }
+        {
+            $permissionDefinition = new PermissionDefinition();
+            $permissionDefinition->setName("ssh");
+            $permissionDefinition->setPath("/.ssh");
+            $permissionDefinition->addAcl("-R -m user::rwX");
+            $permissionDefinition->addAcl("-R -m group::---");
+            $permissionDefinition->addAcl("-R -m other::---");
+            $permissionDefinition->addAcl("-R -m m::---");
+            $project->addPermissionDefinition($permissionDefinition);
+        }
     }
 
     /**
@@ -119,21 +134,42 @@ class BaseSkeleton extends AbstractSkeleton
     }
 
     /**
-     * @param Project $project The project
-     * @param array   &$config The configuration array
+     * @param Project      $project The project
+     * @param \ArrayObject $config  The configuration array
      */
-    public function writeConfig(Project $project, &$config)
+    public function writeConfig(Project $project, \ArrayObject $config)
     {
-        // TODO: Implement writeConfig() method.
+        $config["name"] = $project->getName();
+        foreach ($project->getPermissionDefinitions() as $pd) {
+            $config["permissions"][$pd->getName()]["path"] = $pd->getPath();
+            $config["permissions"][$pd->getName()]["ownership"] = $pd->getOwnership();
+            $config["permissions"][$pd->getName()]["acl"] = $pd->getAcl();
+        }
+        $config["backup"]["excluded"] = $project->getExcludedFromBackup();
     }
 
     /**
-     * @param Project $project The project
-     * @param array   &$config The configuration array
+     * @param Project      $project The project
+     * @param \ArrayObject $config  The configuration array
      */
-    public function loadConfig(Project $project, &$config)
+    public function loadConfig(Project $project, \ArrayObject $config)
     {
-        // TODO: Implement readConfig() method.
+        if (isset($config["backup"]["excluded"])) {
+            foreach ($config["backup"]["excluded"] as $excluded) {
+                $project->addExcludedFromBackup($excluded);
+            }
+        }
+
+        foreach ($config["permissions"] as $name => $pdarr) {
+            $pd = new PermissionDefinition();
+            $pd->setName($name);
+            $pd->setPath($pdarr['path']);
+            $pd->setOwnership($pdarr['ownership']);
+            foreach ($pdarr["acl"] as $acl) {
+                $pd->addAcl($acl);
+            }
+            $project->addPermissionDefinition($pd);
+        }
     }
 
 

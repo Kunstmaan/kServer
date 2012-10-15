@@ -1,6 +1,8 @@
 <?php
 namespace Kunstmaan\kServer\Command;
 
+use Kunstmaan\kServer\Helper\OutputUtil;
+
 use Symfony\Component\Console\Input\InputArgument;
 use Kunstmaan\kServer\Skeleton\BaseSkeleton;
 use RuntimeException;
@@ -43,10 +45,10 @@ class NewProjectCommand extends AbstractCommand
             throw new RuntimeException("A project with name $projectname already exists!");
         }
 
-        $output->writeln("<info> ---> Creating project $projectname</info>");
+        OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, "Creating project $projectname");
         $this->filesystem->createProjectDirectory($projectname, $output);
         $project = $this->projectConfig->createNewProjectConfig($projectname, $output);
         $this->skeleton->applySkeleton($project, $this->skeleton->findSkeleton("base"), $output);
-        $project->writeConfig($output);
+        $this->projectConfig->writeProjectConfig($project, $output);
     }
 }

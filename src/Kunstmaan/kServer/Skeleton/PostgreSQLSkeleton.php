@@ -1,7 +1,9 @@
 <?php
 namespace Kunstmaan\kServer\Skeleton;
 
-use Kunstmaan\kServer\Entity\MySQLConfig;
+use Kunstmaan\kServer\Entity\PostgreSQLConfig;
+
+use Kunstmaan\kServer\Entity\MysqlConfig;
 
 use Cilex\Application;
 use Symfony\Component\Finder\Finder;
@@ -16,9 +18,9 @@ use Kunstmaan\kServer\Provider\ProcessProvider;
 use Kunstmaan\kServer\Helper\OutputUtil;
 
 /**
- * MySQLSkeleton
+ * PostgresQLSkeleton
  */
-class MySQLSkeleton extends AbstractSkeleton
+class PostgreSQLSkeleton extends AbstractSkeleton
 {
 
     const NAME = "mysql";
@@ -28,7 +30,7 @@ class MySQLSkeleton extends AbstractSkeleton
      */
     public function getName()
     {
-        return MySQLSkeleton::NAME;
+        return PostgreSQLSkeleton::NAME;
     }
 
     /**
@@ -49,17 +51,25 @@ class MySQLSkeleton extends AbstractSkeleton
         /** @var $dialog DialogHelper */
         $dialog = $console->getHelperSet()->get('dialog');
 
-        $mysqlConfig = new MySQLConfig();
-        $mysqlConfig->setUser($dialog->ask($output, '      <question>Enter the preferred MySQL username: ['.$project->getName().'] </question>', $project->getName()));
+        $postgresqlConfig = new PostgreSQLConfig();
+        $postgresqlConfig->setUser($dialog->ask($output, '      <question>Enter the preferred PostgreSQL username: ['.$project->getName().'] </question>', $project->getName()));
 
         $pwgen = new PWGen();
         $password = $pwgen->generate();
 
-        $mysqlConfig->setPassword($dialog->ask($output, '      <question>Enter the preferred MySQL password: ['.$password.'] </question>', $password));
-        $mysqlConfig->setHost($dialog->ask($output, '      <question>Enter the MySQL hostname: [localhost] </question>', 'localhost'));
-        $mysqlConfig->setPort($dialog->ask($output, '      <question>Enter the MySQL port: [3306] </question>', 3306));
+        $postgresConfig->setPassword($dialog->ask($output, '      <question>Enter the preferred PostgreSQL password: ['.$password.'] </question>', $password));
+        $postgresConfig->setHost($dialog->ask($output, '      <question>Enter the MySQL hostname: [localhost] </question>', 'localhost'));
+        $postgresConfig->setPort($dialog->ask($output, '      <question>Enter the MySQL port: [3306] </question>', 3306));
 
         $project->setConfiguration(MySQLSkeleton::NAME, $mysqlConfig);
+
+        {
+            $permissionDefinition = new PermissionDefinition();
+            $permissionDefinition->setName("backup-postgres");
+            $permissionDefinition->setPath("/backup");
+            $permissionDefinition->addAcl("-R -m u:postgres:r-X");
+            $project->addPermissionDefinition($permissionDefinition);
+        }
     }
 
     /**
@@ -71,15 +81,12 @@ class MySQLSkeleton extends AbstractSkeleton
      */
     public function maintenance(Application $app, Project $project, OutputInterface $output)
     {
-        /* @var $filesystem FileSystemProvider */
-        $filesystem = $app["filesystem"];
-        $backupDir = $filesystem->getDirectory($project, $output, 'backup');
-        /* @var $mysqlConfig MySQLonfig */
+        /* @var $mysqlConfig MysqlConfig */
         $mysqlConfig = $project->getConfiguration(MySQLSkeleton::NAME);
-        $host = $mysqlConfig->getHost();
-        $port = $mysqlConfig->getPort();
-        $user = $mysqlConfig->getUser();
-        $password = $mysqlConfig->getPassword();
+        $host = $mysqlConfig->getMysqlHost();
+        $port = $mysqlConfig->getMysqlPort();
+        $user = $mysqlConfig->getMysqlUser();
+        $password = $mysqlConfig->getMysqlPassword();
         try {
             $pdo = new PDO('mysql:host='.$host.';port='.$port.';dbname='.$user, $user, $password);
         } catch (PDOException $exLoginTest) {
@@ -91,12 +98,14 @@ class MySQLSkeleton extends AbstractSkeleton
                 $pdo = new PDO('mysql:host='.$host.';port='.$port, $app["config"]["mysql"]["rootuser"], $app["config"]["mysql"]["rootpassword"]);
                 $pdo->exec(OutputUtil::log($output, OutputInterface::VERBOSITY_VERBOSE, "mysql", "create database " . $user . " CHARACTER SET utf8 COLLATE utf8_general_ci;"));
                 $finder = new Finder();
-                $finder->files()->in($backupDir)->name("mysql.dmp.gz");
+                /** @var $filesystem FileSystemProvider */
+                $filesystem = $app["filesystem"];
+                $finder->files()->in($filesystem->getMySQLBackupDirectory($project, $output))->name("mysql.dmp.gz");
                 if (sizeof(iterator_to_array($finder)) > 0) {
                     /** @var $process ProcessProvider */
                     $process = $app["process"];
-                    $process->executeCommand('gzip -dc '.$backupDir.'/mysql.dmp.gz | mysql -h '.$host.' -P '.$port.' -u '.$app["config"]["mysql"]["rootuser"].' -p'.$app["config"]["mysql"]["rootpassword"].' '.$user, $output);
-                    OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, 'MySQL database created based on ' . $backupDir);
+                    $process->executeCommand('gzip -dc '.$filesystem->getMySQLBackupDirectory($project, $output).'/mysql.dmp.gz | mysql -h '.$host.' -P '.$port.' -u '.$app["config"]["mysql"]["rootuser"].' -p'.$app["config"]["mysql"]["rootpassword"].' '.$user, $output);
+                    OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, 'MySQL database created based on ' . $filesystem->getMySQLBackupDirectory($project, $output));
                 } else {
                     OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, 'Empty MySQL database created');
                 }
@@ -116,29 +125,26 @@ class MySQLSkeleton extends AbstractSkeleton
      */
     public function preBackup(Application $app, Project $project, OutputInterface $output)
     {
-        /* @var $filesystem FileSystemProvider */
-        $filesystem = $app["filesystem"];
-        $backupDir = $filesystem->getDirectory($project, $output, 'backup');
-        /* @var $mysqlConfig MySQLConfig */
+        /* @var $mysqlConfig MysqlConfig */
         $mysqlConfig = $project->getConfiguration(MySQLSkeleton::NAME);
         /* @var $process ProcessProvider */
         $process = $app["process"];
         /* @var $filesystem FileSystemProvider */
         $filesystem = $app["filesystem"];
-        $process->executeCommand('rm -f '.$backupDir.'/mysql.dmp', $output);
-        if (is_file($backupDir.'/mysql.dmp.gz')) {
-            $process->executeCommand('rm -f '.$backupDir.'/mysql.dmp.previous.gz', $output);
-            $process->executeCommand('mv '.$backupDir.'/mysql.dmp.gz '.$backupDir.'/mysql.dmp.previous.gz', $output);
+        $process->executeCommand('rm -f '.$filesystem->getMySQLBackupDirectory($project, $output).'/mysql.dmp', $output);
+        if (is_file($filesystem->getMySQLBackupDirectory($project, $output).'/mysql.dmp.gz')) {
+            $process->executeCommand('rm -f '.$filesystem->getMySQLBackupDirectory($project, $output).'/mysql.dmp.previous.gz', $output);
+            $process->executeCommand('mv '.$filesystem->getMySQLBackupDirectory($project, $output).'/mysql.dmp.gz '.$filesystem->getMySQLBackupDirectory($project, $output).'/mysql.dmp.previous.gz', $output);
         }
-        $process->executeCommand("echo 'SET autocommit=0;' > ".$backupDir."/mysql.dmp", $output);
-        $process->executeCommand("echo 'SET unique_checks=0;' >> " . $backupDir . "/mysql.dmp", $output);
-        $process->executeCommand("echo 'SET foreign_key_checks=0;' >> " . $backupDir . "/mysql.dmp", $output);
-        $process->executeCommand("mysqldump --ignore-table=" . $mysqlConfig->getUser().".sessions --skip-opt --add-drop-table --add-locks --create-options --disable-keys --single-transaction --skip-extended-insert --quick --set-charset -u " . $mysqlConfig->getUser() . " -p".$mysqlConfig->getPassword() . " ".$mysqlConfig->getUser() . " >> " . $backupDir . "/mysql.dmp", $output);
-        $process->executeCommand("echo 'COMMIT;' >> " . $backupDir . "/mysql.dmp", $output);
-        $process->executeCommand("echo 'SET autocommit=1;' >> " . $backupDir . "/mysql.dmp", $output);
-        $process->executeCommand("echo 'SET unique_checks=1;' >> " . $backupDir . "/mysql.dmp", $output);
-        $process->executeCommand("echo 'SET foreign_key_checks=1;' >> " . $backupDir . "/mysql.dmp", $output);
-        $process->executeCommand("gzip " . $backupDir . "/mysql.dmp -f", $output);
+        $process->executeCommand("echo 'SET autocommit=0;' > ".$filesystem->getMySQLBackupDirectory($project, $output)."/mysql.dmp", $output);
+        $process->executeCommand("echo 'SET unique_checks=0;' >> " . $filesystem->getMySQLBackupDirectory($project, $output) . "/mysql.dmp", $output);
+        $process->executeCommand("echo 'SET foreign_key_checks=0;' >> " . $filesystem->getMySQLBackupDirectory($project, $output) . "/mysql.dmp", $output);
+        $process->executeCommand("mysqldump --ignore-table=" . $mysqlConfig->getMysqlUser().".sessions --skip-opt --add-drop-table --add-locks --create-options --disable-keys --single-transaction --skip-extended-insert --quick --set-charset -u " . $mysqlConfig->getMysqlUser() . " -p".$mysqlConfig->getMysqlPassword() . " ".$mysqlConfig->getMysqlUser() . " >> " . $filesystem->getMySQLBackupDirectory($project, $output) . "/mysql.dmp", $output);
+        $process->executeCommand("echo 'COMMIT;' >> " . $filesystem->getMySQLBackupDirectory($project, $output) . "/mysql.dmp", $output);
+        $process->executeCommand("echo 'SET autocommit=1;' >> " . $filesystem->getMySQLBackupDirectory($project, $output) . "/mysql.dmp", $output);
+        $process->executeCommand("echo 'SET unique_checks=1;' >> " . $filesystem->getMySQLBackupDirectory($project, $output) . "/mysql.dmp", $output);
+        $process->executeCommand("echo 'SET foreign_key_checks=1;' >> " . $filesystem->getMySQLBackupDirectory($project, $output) . "/mysql.dmp", $output);
+        $process->executeCommand("gzip " . $filesystem->getMySQLBackupDirectory($project, $output) . "/mysql.dmp -f", $output);
     }
 
     /**
@@ -172,8 +178,8 @@ class MySQLSkeleton extends AbstractSkeleton
      */
     public function postRemove(Application $app, Project $project, OutputInterface $output)
     {
-        /* @var $mysqlConfig MySQLConfig */
-        $mysqlConfig = $project->getConfiguration(MySQLSkeleton::NAME);
+        /* @var $postgresqlConfig PostgreSQLConfig */
+        $postgresqlConfig = $project->getConfiguration(PostgreSQLSkeleton::NAME);
 
         $pdo = new PDO('mysql:host='.$mysqlConfig->getHost().';port='.$mysqlConfig->getPort().';dbname='.$mysqlConfig->getUser(), $mysqlConfig->getUser(), $mysqlConfig->getPassword());
         $pdo->exec(OutputUtil::log($output, OutputInterface::VERBOSITY_VERBOSE, "mysql", "drop database " . $mysqlConfig->getUser()));
@@ -185,18 +191,19 @@ class MySQLSkeleton extends AbstractSkeleton
      */
     public function writeConfig(Project $project, \ArrayObject $config)
     {
-        $mysqlConfig = $project->getConfiguration(MySQLSkeleton::NAME);
-        if (!is_null($mysqlConfig->getHost())) {
-            $config["mysql"]["host"] = $mysqlConfig->getHost();
+        /* @var $postgresqlConfig PostgreSQLConfig */
+        $postgresqlConfig = $project->getConfiguration(PostgreSQLSkeleton::NAME);
+        if (!is_null($postgresqlConfig->getUser())) {
+            $config["postgresql"]["user"] = $postgresqlConfig->getUser();
         }
-        if (!is_null($mysqlConfig->getPort())) {
-            $config["mysql"]["port"] = $mysqlConfig->getPort();
+        if (!is_null($postgresqlConfig->getPassword())) {
+            $config["postgresql"]["password"] = $postgresqlConfig->getPassword();
         }
-        if (!is_null($mysqlConfig->getUser())) {
-            $config["mysql"]["user"] = $mysqlConfig->getUser();
+        if (!is_null($postgresqlConfig->getHost())) {
+            $config["postgresql"]["host"] = $postgresqlConfig->getHost();
         }
-        if (!is_null($mysqlConfig->getPassword())) {
-            $config["mysql"]["password"] = $mysqlConfig->getPassword();
+        if (!is_null($postgresqlConfig->getPort())) {
+            $config["postgresql"]["port"] = $postgresqlConfig->getPort();
         }
     }
 
@@ -206,21 +213,20 @@ class MySQLSkeleton extends AbstractSkeleton
      */
     public function loadConfig(Project $project, \ArrayObject $config)
     {
-        $mysqlConfig = new MySQLConfig();
-        if (isset($config["mysql"]["host"])) {
-            $mysqlConfig->setHost($config["mysql"]["host"]);
+        $postgresqlConfig = new PostgreSQLConfig();
+        if (isset($config["postgresql"]["user"])) {
+            $postgresqlConfig->setUser($config["postgresql"]["user"]);
         }
-        if (isset($config["mysql"]["port"])) {
-            $mysqlConfig->setPort($config["mysql"]["port"]);
+        if (isset($config["postgresql"]["password"])) {
+            $postgresqlConfig->setPassword($config["postgresql"]["password"]);
         }
-        if (isset($config["mysql"]["user"])) {
-            $mysqlConfig->setUser($config["mysql"]["user"]);
+        if (isset($config["postgresql"]["host"])) {
+            $postgresqlConfig->setHost($config["postgresql"]["host"]);
         }
-        if (isset($config["mysql"]["password"])) {
-            $mysqlConfig->setPassword($config["mysql"]["password"]);
+        if (isset($config["postgresql"]["port"])) {
+            $postgresqlConfig->setPort($config["postgresql"]["port"]);
         }
-
-        $project->setConfiguration(MySQLSkeleton::NAME, $mysqlConfig);
+        $project->setConfiguration(PostgreSQLSkeleton::NAME, $postgresqlConfig);
     }
 
 }

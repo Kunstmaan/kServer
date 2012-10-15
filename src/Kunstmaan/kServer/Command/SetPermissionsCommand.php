@@ -1,6 +1,8 @@
 <?php
 namespace Kunstmaan\kServer\Command;
 
+use Kunstmaan\kServer\Helper\OutputUtil;
+
 use Symfony\Component\Console\Input\InputArgument;
 use Kunstmaan\kServer\Skeleton\BaseSkeleton;
 use RuntimeException;
@@ -36,17 +38,15 @@ class SetPermissionsCommand extends AbstractCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->prepareProviders();
-
         $projectname = $input->getArgument('name');
 
         if (!$this->filesystem->projectExists($projectname)) {
             throw new RuntimeException("The $projectname project does not exist.");
         }
 
-        $output->writeln("<info> ---> Setting permissions on project $projectname</info>");
+        OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, "Setting permissions on project $projectname");
 
-        $baseSkeleton = new BaseSkeleton();
+        $baseSkeleton =  $this->skeleton->findSkeleton("base");
         $project = $this->projectConfig->loadProjectConfig($projectname, $output);
         $baseSkeleton->permissions($this->getContainer(), $project, $output);
     }

@@ -2,6 +2,12 @@
 
 namespace Kunstmaan\kServer\Provider;
 
+use Symfony\Component\Yaml\Dumper;
+
+use Symfony\Component\Yaml\Yaml;
+
+use Kunstmaan\kServer\Helper\OutputUtil;
+
 use Cilex\ServiceProviderInterface;
 use Kunstmaan\kServer\Entity\Project;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -42,8 +48,9 @@ class ProjectConfigProvider implements ServiceProviderInterface
         /** @var $filesystem FileSystemProvider */
         $filesystem = $this->app['filesystem'];
         $projectpath = $filesystem->getProjectDirectory($projectname);
-        $output->writeln("<comment>      > Creating new Project object named $projectname in $projectpath/config/project.yml</comment>");
-        $project = new Project($projectname, $projectpath . '/config/project.yml');
+        $configPath = $projectpath . '/current/config/project.yml';
+        OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, "Creating new Project object named $projectname in $projectpath/current/config/project.yml");
+        $project = new Project($projectname, $configPath);
 
         return $project;
     }
@@ -56,13 +63,53 @@ class ProjectConfigProvider implements ServiceProviderInterface
      */
     public function loadProjectConfig($projectname, OutputInterface $output)
     {
-        /** @var $filesystem FileSystemProvider */
+        /* @var $filesystem FileSystemProvider */
         $filesystem = $this->app['filesystem'];
         $projectpath = $filesystem->getProjectDirectory($projectname);
-        $project = new Project($projectname, $projectpath . '/config/project.yml');
-        $project->loadConfig($this->app["config"]["skeletons"], $output);
+        $configPath = $projectpath . '/current/config/project.yml';
+        $project = new Project($projectname, $configPath);
+
+        $skeletons = $this->app["config"]["skeletons"];
+
+        OutputUtil::log($output, OutputInterface::VERBOSITY_VERBOSE, "Loading the project config from " . $configPath);
+        $config = Yaml::parse($configPath);
+        $config = new \ArrayObject($config['kserver']);
+
+        /* @var $skeletonProvider SkeletonProvider */
+        $skeletonProvider = $this->app['skeleton'];
+        foreach ($config["dependencies"] as $depname => $dep) {
+            $dep = $skeletonProvider->findSkeleton($depname);
+            $project->addDependency($dep);
+            $dep->loadConfig($project, $config);
+        }
 
         return $project;
+    }
+
+    /**
+     * @param Project         $project The project
+     * @param OutputInterface $output  The command output stream
+     */
+    public function writeProjectConfig($project, OutputInterface $output)
+    {
+        /* @var $filesystem FileSystemProvider */
+        $filesystem = $this->app['filesystem'];
+        $projectpath = $filesystem->getProjectDirectory($project->getName());
+        $configPath = $projectpath . '/current/config/project.yml';
+        OutputUtil::log($output, OutputInterface::VERBOSITY_VERBOSE, "Writing the project config to " . $configPath);
+
+        $config = new \ArrayObject();
+        $config["dependencies"] = $project->getDependencies();
+        /* @var $skeletonProvider SkeletonProvider */
+        $skeletonProvider = $this->app['skeleton'];
+        foreach ($project->getDependencies() as $skeletonname => $skeletonclass) {
+            $skeleton = $skeletonProvider->findSkeleton($skeletonname);
+            $skeleton->writeConfig($project, $config);
+        }
+
+        $dumper = new Dumper();
+        $yaml = $dumper->dump(array("kserver" => $config->getArrayCopy()), 5);
+        file_put_contents($configPath, $yaml);
     }
 
 }

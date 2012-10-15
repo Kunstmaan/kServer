@@ -2,6 +2,8 @@
 
 namespace Kunstmaan\kServer\Provider;
 
+use Kunstmaan\kServer\Helper\OutputUtil;
+
 use Cilex\ServiceProviderInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -32,18 +34,37 @@ class ProcessProvider implements ServiceProviderInterface
      */
     public function executeCommand($command, OutputInterface $output, $silent = false)
     {
-        $output->writeln("<comment>      $ " . $command . "</comment>");
+        OutputUtil::log($output, OutputInterface::VERBOSITY_VERBOSE, "$", $command);
         $process = new Process($command);
         $process->setTimeout(3600);
         $process->run();
         if (!$process->isSuccessful()) {
             if (!$silent) {
-                $output->writeln("<error>      " . $process->getErrorOutput() . "</error>");
+                OutputUtil::logError($output, OutputInterface::VERBOSITY_NORMAL, $process->getErrorOutput());
             }
 
             return false;
         }
 
         return $process->getOutput();
+    }
+
+    /**
+     * @param string          $command The command
+     * @param OutputInterface $output  The command output stream
+     * @param bool            $silent  Be silent or not
+     * @param string          $sudoAs  Sudo as a different user then the root user
+     *
+     * @return bool|string
+     */
+    public function executeSudoCommand($command, OutputInterface $output, $silent = false, $sudoAs = null)
+    {
+        if (empty($sudoAs)) {
+            $command = 'sudo ' . $command;
+        } else {
+            $command = 'sudo -u ' . $sudoAs . ' ' . $command;
+        }
+
+        return $this->executeCommand($command, $output, $silent);
     }
 }

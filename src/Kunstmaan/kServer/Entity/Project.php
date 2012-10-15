@@ -1,6 +1,10 @@
 <?php
 namespace Kunstmaan\kServer\Entity;
 
+use Kunstmaan\kServer\Helper\OutputUtil;
+
+use Kunstmaan\kServer\Provider\SkeletonProvider;
+
 use Symfony\Component\Yaml\Dumper;
 use Kunstmaan\kServer\Skeleton\AbstractSkeleton;
 use Symfony\Component\Yaml\Yaml;
@@ -39,24 +43,14 @@ class Project
     private $excludedFromBackup;
 
     /**
-     * @var string
+     * @var \ArrayObject
      */
-    private $mysqlUser;
+    private $configurations;
 
     /**
      * @var string
      */
-    private $mysqlPassword;
-
-    /**
-     * @var string
-     */
-    private $mysqlHost;
-
-    /**
-     * @var int
-     */
-    private $mysqlPort;
+    private $logFolder;
 
     /**
      * @param string $name       The project name
@@ -141,130 +135,38 @@ class Project
     }
 
     /**
-     * @param string $mysqlHost
+     * @param string $name
+     *
+     * @return mixed
      */
-    public function setMysqlHost($mysqlHost)
+    public function getConfiguration($name)
     {
-        $this->mysqlHost = $mysqlHost;
+        return $this->configurations[$name];
+    }
+
+    /**
+     * @param string $name          The configuration internal name
+     * @param mixed  $configuration The configuration object
+     */
+    public function setConfiguration($name, $configuration)
+    {
+        $this->configurations[$name] = $configuration;
+    }
+
+    /**
+     * @param string $logPath
+     */
+    public function setLogPath($logPath)
+    {
+        $this->logPath = $logPath;
     }
 
     /**
      * @return string
      */
-    public function getMysqlHost()
+    public function getLogPath()
     {
-        return $this->mysqlHost;
+        return $this->logPath;
     }
 
-    /**
-     * @param string $mysqlPassword
-     */
-    public function setMysqlPassword($mysqlPassword)
-    {
-        $this->mysqlPassword = $mysqlPassword;
-    }
-
-    /**
-     * @return string
-     */
-    public function getMysqlPassword()
-    {
-        return $this->mysqlPassword;
-    }
-
-    /**
-     * @param int $mysqlPort
-     */
-    public function setMysqlPort($mysqlPort)
-    {
-        $this->mysqlPort = $mysqlPort;
-    }
-
-    /**
-     * @return int
-     */
-    public function getMysqlPort()
-    {
-        return $this->mysqlPort;
-    }
-
-    /**
-     * @param string $mysqlUser
-     */
-    public function setMysqlUser($mysqlUser)
-    {
-        $this->mysqlUser = $mysqlUser;
-    }
-
-    /**
-     * @return string
-     */
-    public function getMysqlUser()
-    {
-        return $this->mysqlUser;
-    }
-
-    /**
-     * @param OutputInterface $output
-     */
-    public function writeConfig(OutputInterface $output)
-    {
-        $output->writeln("<comment>      > Writing the project config to " . $this->getConfigPath() . "</comment>");
-        $config = array();
-        $config["kserver"]["name"] = $this->getName();
-        $config["kserver"]["dependencies"] = $this->getDependencies();
-        foreach ($this->getPermissionDefinitions() as $pd) {
-            $config["kserver"]["permissions"][$pd->getName()]["path"] = $pd->getPath();
-            $config["kserver"]["permissions"][$pd->getName()]["ownership"] = $pd->getOwnership();
-            $config["kserver"]["permissions"][$pd->getName()]["acl"] = $pd->getAcl();
-        }
-        $config["kserver"]["backup"]["excluded"] = $this->getExcludedFromBackup();
-
-        foreach ($this->getDependencies() as $skeletonclass) {
-            /** @var $skeleton SkeletonInterface */
-            $skeleton = new $skeletonclass;
-            $skeleton->writeConfig($this, $config);
-        }
-
-        $dumper = new Dumper();
-        $yaml = $dumper->dump($config, 5);
-        file_put_contents($this->getConfigPath(), $yaml);
-    }
-
-
-    /**
-     * @param string[]        $skeletons Skeletons array
-     * @param OutputInterface $output    The command output stream
-     */
-    public function loadConfig(array $skeletons, OutputInterface $output)
-    {
-        $output->writeln("<comment>      > Loading the project config from " . $this->getConfigPath() . "</comment>");
-        $config = Yaml::parse($this->getConfigPath());
-
-        foreach ($skeletons as $skeletonclass) {
-            /** @var $skeleton SkeletonInterface */
-            $skeleton = new $skeletonclass;
-            $skeleton->loadConfig($this, $config);
-        }
-
-        foreach ($config["kserver"]["dependencies"] as $dep) {
-            $this->addDependency(new $dep);
-        }
-        if (isset($config["kserver"]["backup"]["excluded"])) {
-            foreach ($config["kserver"]["backup"]["excluded"] as $excluded) {
-                $this->addExcludedFromBackup($excluded);
-            }
-        }
-
-        foreach ($config["kserver"]["permissions"] as $name => $pdarr) {
-            $pd = new PermissionDefinition();
-            $pd->setName($name);
-            $pd->setPath($pdarr['path']);
-            $pd->setOwnership($pdarr['ownership']);
-            foreach ($pdarr["acl"] as $acl) {
-                $pd->addAcl($acl);
-            }
-            $this->addPermissionDefinition($pd);
-        }
-    }
 }

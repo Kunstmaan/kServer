@@ -1,2 +1,2 @@
-ServerName {{ mainURL }}
-ServerAlias {% for alternativeURL in alternativeURI %}{{ alternativeURL }}{% endfor %}
+ServerName {{ apacheConfig.url }}
+ServerAlias {% for alias in apacheConfig.aliases %}{{ alias }} {% endfor %} {% for alias in localAliases %}{{ alias }} {% endfor %}

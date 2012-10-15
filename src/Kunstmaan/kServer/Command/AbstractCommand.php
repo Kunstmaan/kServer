@@ -55,17 +55,27 @@ abstract class AbstractCommand extends Command
     protected $output;
 
     /**
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param OutputInterface $output
      */
     public function __construct(OutputInterface $output)
     {
+        parent::__construct();
+
+        $this->output = $output;
+    }
+
+    /**
+     * @param Application $container
+     */
+    public function setContainer(Application $container)
+    {
+        parent::setContainer($container);
         $this->filesystem = $this->getService('filesystem');
         $this->projectConfig = $this->getService('projectconfig');
         $this->skeleton = $this->getService('skeleton');
         $this->process = $this->getService('process');
         $this->permission = $this->getService('permission');
         $this->dialog = $this->getService('dialog');
-        $this->output = $output;
     }
 
 }
