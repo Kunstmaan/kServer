@@ -1,4 +1,4 @@
-hostname: amos.kunstmaan.be
+hostname: 
 
 projects:
     path:       "/var/www"
