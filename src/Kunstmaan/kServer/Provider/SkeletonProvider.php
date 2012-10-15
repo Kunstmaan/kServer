@@ -56,13 +56,32 @@ class SkeletonProvider implements ServiceProviderInterface
     {
         OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, "Applying " . get_class($skeleton) . " to " . $project->getName());
         $project->addDependency($skeleton);
+        $this->resolveDependencies($project,$output);
         $skeleton->create($this->app, $project, $output);
+    }
+
+    /**
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
+    private function resolveDependencies(Project $project, OutputInterface $output){
+        $deps = $project->getDependencies();
+        foreach ($deps as $skeletonName => $skeletonClass){
+            $theSkeleton = $this->findSkeleton($skeletonName);
+            $skeletonDeps = $theSkeleton->dependsOn($this->app, $project, $output);
+            foreach($skeletonDeps as $skeletonDependencyName){
+                if(!isset($deps[$skeletonDependencyName])){
+                    $aSkeleton = $this->findSkeleton($skeletonDependencyName);
+                    $this->applySkeleton($project, $aSkeleton, $output);
+                }
+            }
+        }
     }
 
     /**
      * @param string $skeletonname
      *
-     * @return SkeletonInterface
+     * @return AbstractSkeleton
      *
      * @throws \RuntimeException
      */

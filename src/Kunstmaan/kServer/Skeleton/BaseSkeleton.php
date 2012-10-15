@@ -173,4 +173,14 @@ class BaseSkeleton extends AbstractSkeleton
     }
 
 
+    /**
+     * @param \Cilex\Application $app
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return string[]
+     */
+    public function dependsOn(Application $app, Project $project, OutputInterface $output)
+    {
+        return array();
+    }
 }

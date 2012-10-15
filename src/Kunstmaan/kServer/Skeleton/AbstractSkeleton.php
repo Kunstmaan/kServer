@@ -131,4 +131,12 @@ abstract class AbstractSkeleton
      */
     abstract public function loadConfig(Project $project, \ArrayObject $config);
 
+    /**
+     * @param \Cilex\Application $app
+     * @param \Kunstmaan\kServer\Entity\Project $project
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return string[]
+     */
+    abstract public function dependsOn(Application $app, Project $project, OutputInterface $output);
+
 }
