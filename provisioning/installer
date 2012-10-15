@@ -10,6 +10,8 @@ sed 's@us.archive.ubuntu.com@be.archive.ubuntu.com@' -i /etc/apt/sources.list
 apt-get update
 yes | apt-get -y install python-software-properties
 add-apt-repository -y ppa:ondrej/php5
+wget -O /etc/apt/sources.list.d/newrelic.list http://download.newrelic.com/debian/newrelic.list
+apt-key adv --keyserver hkp://subkeys.pgp.net --recv-keys 548C16BF
 apt-get update
 apt-get autoclean
 yes | apt-get -q -y -o 'DPkg::Options::=--force-confold' dist-upgrade
@@ -25,22 +27,35 @@ mount -a
 
 echo "##### Installing apache"
 yes | apt-get -y -q install apache2 apache2-mpm-worker apache2-threaded-dev libapache2-mod-rpaf libapache2-mod-fastcgi
+
 a2enmod rewrite
+a2enmod ssl
+
 a2dissite 000-default
+
 
 echo "##### Installing mysql"
 yes | apt-get -y -q install mysql-server
 mysql -uroot -e "UPDATE mysql.user SET Password = PASSWORD('$MYSQLROOTPASSWD') WHERE User = 'root'; DELETE FROM mysql.user WHERE User=''; DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); DROP DATABASE IF EXISTS test; FLUSH PRIVILEGES;"
 
-
-
 echo "##### Installing PHP"
-yes | apt-get -y -q install php5-fpm php5-mysqlnd php5-mcrypt php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev
+yes | apt-get -y -q install php5-fpm php5-mysqlnd php5-mcrypt php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev newrelic-php5
 yes | pecl install imagick-beta
 yes | pecl install APC-beta
 echo "extension=imagick.so" > /etc/php5/conf.d/50-imagick.ini
 cat $INSTALLBASE/provisioning/etc/php5/conf.d/50-apc.ini > /etc/php5/conf.d/50-apc.ini
 cat $INSTALLBASE/provisioning/etc/php5/conf.d/99-kunstmaan.ini > /etc/php5/conf.d/99-kunstmaan.ini
+export NR_INSTALL_SILENT=true
+newrelic-install install
+/etc/init.d/newrelic-daemon restart
+
+echo "##### Setting up FPM"
+
+a2enmod actions
+a2enmod fastcgi
+cp $INSTALLBASE/provisioning/etc/apache/fastcgi.conf /etc/apache2/mods-available/fastcgi.conf
+
+
 
 echo "##### Configuring GIT"
 

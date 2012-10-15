@@ -43,7 +43,10 @@ class PHPSkeleton extends AbstractSkeleton
         $filesystem = $app["filesystem"];
         //$filesystem->createProjectConfigDirectory($project, $output);
         $filesystem->createDirectory($project, $output, 'php5-fpm');
-        $process->executeCommand("rsync -avh " . $this->getTemplateDir() . " " . $filesystem->getProjectConfigDirectory($project->getName()), $output);
+
+        $process->executeCommand("rsync -avh --exclude \"apache\" " . $this->getTemplateDir() . " " . $filesystem->getProjectConfigDirectory($project->getName()), $output);
+
+        $process->executeCommand("rsync -avh " . $this->getTemplateDir() . "/apache/ " . $filesystem->getProjectConfigDirectory($project->getName()). "/apache/", $output);
 
         $permissionDefinition = new PermissionDefinition();
         $permissionDefinition->setName("php5-fpm");
@@ -70,7 +73,8 @@ class PHPSkeleton extends AbstractSkeleton
         $configRenderParams = array(
                 "project" => $project,
                 "projectDir" => $app["config"]["projects"]["path"] . "/" . $project->getName() . "/",
-                "documentRoot" => $app["config"]["projects"]["path"] . "/" . $project->getName() . "/current/" . $apacheConf->getWebDir()
+                "documentRoot" => $app["config"]["projects"]["path"] . "/" . $project->getName() . "/current/" . $apacheConf->getWebDir(),
+                "projectPath" => $app["config"]["projects"]["path"]
                 );
 
         $shared = $app['twig']->render($this->getConfigDir($app, $project) . "/php5-fpm.conf.twig", $configRenderParams);

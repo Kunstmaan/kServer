@@ -111,6 +111,7 @@ class ApacheSkeleton extends AbstractSkeleton
                 "serverAdmin" => "support@kunstmaan.be",
                 "apacheConfig" => $apacheConf,
                 "localAliases" => $localAliases,
+                "projectPath" => $app["config"]["projects"]["path"],
                 "documentRoot" => $app["config"]["projects"]["path"] . "/" . $project->getName() . "/current/" . $apacheConf->getWebDir());
 
         $finder = new Finder();
