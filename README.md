@@ -20,3 +20,18 @@ kServer creates a ```kserver``` folder in the root of your project with all the 
 services.
 
 TODO: add more specific information
+
+## Running kServer
+
+### Running under Vagrant
+
+Running kServer in Vagrant is easy. Just run ```vagrant up```. It will start from the stock precise64 image from the vagrant
+site and mount kServer in /opt/kServer.
+
+### Running on a server
+
+Since a physical server install does not have a provisioning system, we need to do some things by hand. SSH into your server, become root and run:
+
+```bash
+to to
+```

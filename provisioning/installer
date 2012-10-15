@@ -3,6 +3,7 @@
 export DEBIAN_FRONTEND=noninteractive
 export INSTALLBASE=$1
 export MYSQLROOTPASSWD=$2
+export NEWRELICKEY=$3
 
 echo "##### Making sure everything is up to date"
 
@@ -10,6 +11,7 @@ sed 's@us.archive.ubuntu.com@be.archive.ubuntu.com@' -i /etc/apt/sources.list
 apt-get update
 yes | apt-get -y install python-software-properties
 add-apt-repository -y ppa:ondrej/php5
+add-apt-repository -y ppa:arnaud-hartmann/glances-stable
 wget -O /etc/apt/sources.list.d/newrelic.list http://download.newrelic.com/debian/newrelic.list
 apt-key adv --keyserver hkp://subkeys.pgp.net --recv-keys 548C16BF
 apt-get update
@@ -24,6 +26,26 @@ cat /etc/fstab | grep -v precise64-root > /etc/fstab.tmp
 cat /etc/fstab | grep precise64-root | sed "s/remount-ro/remount-ro,acl/" >> /etc/fstab.tmp
 mv /etc/fstab.tmp /etc/fstab
 mount -a
+
+echo "##### Configuring the scheduler..."
+
+if [ -f /etc/init.d/ondemand ]; then
+    sed -i 's/\([^/]\)ondemand/\1performance/g' /etc/init.d/ondemand
+    /etc/init.d/ondemand start
+fi
+
+echo "##### Add some services and settings based on the scalingphp ebook"
+
+yes | apt-get -y -q install nscd
+service nscd start
+
+sysctl -w net.core.somaxconn=100000
+sysctl -w net.ipv4.ip_local_port_range="10000 61000"
+sysctl -w net.ipv4.tcp_tw_reuse=1
+cat $INSTALLBASE/provisioning/etc/sysctl.d/50-tuning.conf > /etc/sysctl.d/50-tuning.conf
+
+ulimit -n 100000
+cat $INSTALLBASE/provisioning/etc/security/limits.conf > /etc/security/limits.conf
 
 echo "##### Installing apache"
 yes | apt-get -y -q install apache2 apache2-mpm-worker apache2-threaded-dev libapache2-mod-rpaf libapache2-mod-fastcgi
@@ -45,41 +67,76 @@ yes | pecl install APC-beta
 echo "extension=imagick.so" > /etc/php5/conf.d/50-imagick.ini
 cat $INSTALLBASE/provisioning/etc/php5/conf.d/50-apc.ini > /etc/php5/conf.d/50-apc.ini
 cat $INSTALLBASE/provisioning/etc/php5/conf.d/99-kunstmaan.ini > /etc/php5/conf.d/99-kunstmaan.ini
-export NR_INSTALL_SILENT=true
-newrelic-install install
-/etc/init.d/newrelic-daemon restart
 
 echo "##### Setting up FPM"
 
 a2enmod actions
 a2enmod fastcgi
 cp $INSTALLBASE/provisioning/etc/apache/fastcgi.conf /etc/apache2/mods-available/fastcgi.conf
+sysv-rc-conf --level 2345 php5-fpm on
 
 
+echo "##### Configuring newrelic"
+
+nrsysmond-config --set license_key=$NEWRELICKEY
+/etc/init.d/newrelic-sysmond start
+export NR_INSTALL_SILENT=true
+export NR_INSTALL_KEY=$NEWRELICKEY
+newrelic-install install
+/etc/init.d/newrelic-daemon restart
 
 echo "##### Configuring GIT"
 
 yes | apt-get -y -q install git
-
-if cat /etc/ssh/ssh_config | grep github.com; then
-    echo "Not updating ssh_config, already done"
-else
-    echo "Host github.com" >> /etc/ssh/ssh_config
-    echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config
-    echo "Host *.kunstmaan.be" >> /etc/ssh/ssh_config
-    echo "    User $USER" >> /etc/ssh/ssh_config
-fi
+ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+ssh-add -L
 
 echo "Defaults        env_keep+=SSH_AUTH_SOCK" > /etc/sudoers.d/env
 chmod 440 /etc/sudoers.d/env
+
+echo "##### Setting up Varnish"
+yes | apt-get -y -q install varnish
+cp $INSTALLBASE/provisioning/etc/varnish/default.vcl /etc/varnish/default.vcl
+
+echo "##### Generating locales"
+locale-gen nl_BE
+locale-gen fr_BE
+locale-gen en_GB
+locale-gen es_ES
+locale-gen nl_BE.utf8
+locale-gen fr_BE.utf8
+locale-gen en_GB.utf8
+locale-gen es_ES.utf8
 
 echo "##### Create hosting folders"
 
 mkdir -p /var/www
 
-echo "##### Adding some costom development settings"
+echo "##### Adding some custom development settings"
 cd /tmp/
 git clone https://github.com/roderik/dotfiles.git
 cd /tmp/dotfiles
 rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" --exclude "Sublime Text 2" --exclude "README.md" -av . /root/
 rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" --exclude "Sublime Text 2" --exclude "README.md" -av . /home/vagrant
+
+echo "##### Installing various useful packages"
+
+yes | apt-get -y -q install ntp optipng jpegoptim curl glances htop
+gem install kstrano
+curl -s https://getcomposer.org/installer | php
+mv composer.phar /usr/local/bin/composer
+chmod a+x /usr/local/bin/composer
+
+echo "##### Setting up Postfix"
+
+yes | apt-get -y -q install postfix
+cat /etc/postfix/main.cf | sed -e "s/`hostname`/`hostname`.kunstmaan.be/g" > /etc/postfix/main.cf
+echo "`hostname`.kunstmaan.be" > /etc/mailname
+
+echo "##### Restarting services"
+
+service apache2 restart
+service php5-fpm restart
+service mysql restart
+service postfix restart
+
