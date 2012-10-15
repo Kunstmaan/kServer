@@ -61,7 +61,7 @@ yes | apt-get -y -q install mysql-server
 mysql -uroot -e "UPDATE mysql.user SET Password = PASSWORD('$MYSQLROOTPASSWD') WHERE User = 'root'; DELETE FROM mysql.user WHERE User=''; DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); DROP DATABASE IF EXISTS test; FLUSH PRIVILEGES;"
 
 echo "##### Installing PHP"
-yes | apt-get -y -q install php5-fpm php5-mysqlnd php5-mcrypt php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev newrelic-php5
+yes | apt-get -y -q install sysv-rc-conf php5-fpm php5-mysqlnd php5-mcrypt php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev
 yes | pecl install imagick-beta
 yes | pecl install APC-beta
 echo "extension=imagick.so" > /etc/php5/conf.d/50-imagick.ini
@@ -78,6 +78,7 @@ sysv-rc-conf --level 2345 php5-fpm on
 
 echo "##### Configuring newrelic"
 
+yes | apt-get -y -q install newrelic-sysmond newrelic-php5
 nrsysmond-config --set license_key=$NEWRELICKEY
 /etc/init.d/newrelic-sysmond start
 export NR_INSTALL_SILENT=true
@@ -88,6 +89,7 @@ newrelic-install install
 echo "##### Configuring GIT"
 
 yes | apt-get -y -q install git
+mkdir -p ~/.ssh/
 ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 ssh-add -L
 
