@@ -1,4 +1,4 @@
-hostname: 
+hostname:
 
 projects:
     path:       "/var/www"
@@ -20,4 +20,3 @@ skeletons:
     mysql:   Kunstmaan\kServer\Skeleton\MySQLSkeleton
     apache:  Kunstmaan\kServer\Skeleton\ApacheSkeleton
     php:     Kunstmaan\kServer\Skeleton\PHPSkeleton
-    symfony: Kunstmaan\kServer\Skeleton\SymfonySkeleton
