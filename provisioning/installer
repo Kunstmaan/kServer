@@ -25,6 +25,7 @@ mount -a
 
 echo "##### Installing apache"
 yes | apt-get -y -q install apache2 apache2-mpm-worker apache2-threaded-dev libapache2-mod-rpaf libapache2-mod-fastcgi
+a2enmod rewrite
 a2dissite 000-default
 
 echo "##### Installing mysql"
