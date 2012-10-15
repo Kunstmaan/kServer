@@ -48,6 +48,7 @@ class PHPSkeleton extends AbstractSkeleton
         $permissionDefinition = new PermissionDefinition();
         $permissionDefinition->setName("php5-fpm");
         $permissionDefinition->setPath("/php5-fpm");
+        $permissionDefinition->setOwnership("-R " . $project->getName() . "." . $project->getName());
         $permissionDefinition->addAcl("-R -m user::rwx");
         $permissionDefinition->addAcl("-R -m group::r-x");
         $permissionDefinition->addAcl("-R -m other::r-x");

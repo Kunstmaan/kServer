@@ -47,10 +47,12 @@ class BaseSkeleton extends AbstractSkeleton
             $permissionDefinition->addAcl("-R -m other::---");
             $project->addPermissionDefinition($permissionDefinition);
         }
+        $filesystem->createDirectory($project, $output, '.ssh');
         {
             $permissionDefinition = new PermissionDefinition();
             $permissionDefinition->setName("ssh");
             $permissionDefinition->setPath("/.ssh");
+            $permissionDefinition->setOwnership("-R " . $project->getName() . "." . $project->getName());
             $permissionDefinition->addAcl("-R -m user::rwX");
             $permissionDefinition->addAcl("-R -m group::---");
             $permissionDefinition->addAcl("-R -m other::---");

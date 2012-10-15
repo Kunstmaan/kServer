@@ -75,6 +75,7 @@ class ApacheSkeleton extends AbstractSkeleton
         $permissionDefinition = new PermissionDefinition();
         $permissionDefinition->setName("apache");
         $permissionDefinition->setPath("/");
+        $permissionDefinition->setOwnership("-R " . $project->getName() . "." . $project->getName());
         $permissionDefinition->addAcl("-R -m u:" . $app["config"]["apache"]["user"] . ":r-X");
         $project->addPermissionDefinition($permissionDefinition);
 
