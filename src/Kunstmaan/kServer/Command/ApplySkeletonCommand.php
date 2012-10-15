@@ -24,7 +24,8 @@ class ApplySkeletonCommand extends AbstractCommand
             ->setName('apply')
             ->setDescription('Apply a skeleton to a kServer project')
             ->addArgument('project', InputArgument::OPTIONAL, 'The name of the kServer project')
-            ->addArgument('skeleton', InputArgument::OPTIONAL, 'The name of the skeleton');
+	    ->addArgument('skeleton', InputArgument::OPTIONAL, 'The name of the skeleton')
+	    ->addOption("list", "l", InputOption::VALUE_NONE, 'Lists all available skeletons');
     }
 
     /**
@@ -37,6 +38,11 @@ class ApplySkeletonCommand extends AbstractCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+	if($input->getOption('list')){
+	    $this->skeleton->listSkeletons($output);
+	    return;
+	}
+
         $projectname = $this->dialog->askFor('project', "Please enter the name of the project", $input, $output);
 
         // Check if the project exists, do use in creating a new one with the same name.

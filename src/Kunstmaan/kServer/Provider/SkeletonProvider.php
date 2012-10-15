@@ -33,7 +33,7 @@ class SkeletonProvider implements ServiceProviderInterface
      */
     public function __construct(OutputInterface $output)
     {
-        $this->output = $output;
+	$this->output = $output;
     }
 
     /**
@@ -74,5 +74,15 @@ class SkeletonProvider implements ServiceProviderInterface
             return new $skeleton($this->app, $this->output);
         }
         throw new RuntimeException("Skeleton not found!");
+    }
+
+    /**
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
+    public function listSkeletons(OutputInterface $output)
+    {
+	foreach($this->app["config"]["skeletons"] as $name => $class ){
+	    OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, $name);
+	}
     }
 }
