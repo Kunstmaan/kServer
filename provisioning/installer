@@ -4,6 +4,17 @@ export DEBIAN_FRONTEND=noninteractive
 export INSTALLBASE=$1
 export MYSQLROOTPASSWD=$2
 
+echo "##### Making sure everything is up to date"
+
+sed 's@us.archive.ubuntu.com@be.archive.ubuntu.com@' -i /etc/apt/sources.list
+apt-get update
+yes | apt-get -y install python-software-properties
+add-apt-repository -y ppa:ondrej/php5
+apt-get update
+apt-get autoclean
+yes | apt-get -q -y -o 'DPkg::Options::=--force-confold' dist-upgrade
+yes | apt-get -y install build-essential
+
 echo "##### Setting up ACL"
 
 yes | apt-get -y -q install acl
@@ -54,5 +65,5 @@ echo "##### Adding some costom development settings"
 cd /tmp/
 git clone https://github.com/roderik/dotfiles.git
 cd /tmp/dotfiles
-rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" --exclude "README.md" -av . /root/
-rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" --exclude "README.md" -av . /home/vagrant
+rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" --exclude "Sublime Text 2" --exclude "README.md" -av . /root/
+rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" --exclude "Sublime Text 2" --exclude "README.md" -av . /home/vagrant
