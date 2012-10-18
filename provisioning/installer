@@ -8,13 +8,10 @@ export PROXY=$4
 
 checkInstalled(){
     LIST=""
-    PACKAGES=$(echo "$1" | tr " " "\n")
-    for PACKAGE in $PACKAGES; do
+    for PACKAGE in $@; do
         dpkg -l ${PACKAGE}  | grep '^i' > /dev/null
         result=$?
-        if [[ $result == 0 ]] ; then
-            printf '  -> Skipping installing "%s", already installed\n' "${1}"
-        else
+        if [[ $result != 0 ]] ; then
             LIST="$LIST $PACKAGE"
         fi
     done
@@ -24,9 +21,7 @@ checkInstalled(){
 checkKeyAdded(){
     apt-key list | grep ${1} > /dev/null
     result=$?
-    if [[ $result == 0 ]]; then
-        printf '  -> Skipping requesting gpg key "%s", already installed\n' "${1}"
-    else
+    if [[ $result != 0 ]]; then
         apt-key adv --keyserver ${2} --recv-keys ${1}
     fi
 }
@@ -35,10 +30,12 @@ checkRepoInstalled(){
     mkdir -p /etc/apt/sources.list.d/
     grep -h ^deb /etc/apt/sources.list /etc/apt/sources.list.d/* | grep -v ^deb-src | grep ${1} > /dev/null
     result=$?
-    if [[ $result == 0 ]]; then
-        printf '  -> Skipping adding "%s", already installed\n' "${1}"
-    else
-        add-apt-repository -y "${2}"
+    if [[ $result != 0 ]]; then
+        if [[ "$3" == "true" ]]; then
+            echo "$2" > /etc/apt/sources.list.d/$1.list
+        else
+            add-apt-repository -y "${2}"
+        fi
     fi
 }
 
@@ -56,14 +53,14 @@ yes | apt-get -y -qq install python-software-properties
 checkRepoInstalled 'php5' 'ppa:ondrej/php5'
 checkRepoInstalled 'glances-stable' 'ppa:arnaud-hartmann/glances-stable'
 checkKeyAdded '548C16BF' 'hkp://subkeys.pgp.net'
-checkRepoInstalled 'newrelic' 'deb http://apt.newrelic.com/debian/ newrelic non-free'
+checkRepoInstalled 'newrelic' 'deb http://apt.newrelic.com/debian/ newrelic non-free' true
 checkKeyAdded 'CD2EFD2A' 'hkp://keys.gnupg.net'
-checkRepoInstalled 'percona' 'deb http://repo.percona.com/apt precise main'
+checkRepoInstalled 'percona' 'deb http://repo.percona.com/apt precise main' true
 
 apt-get -qq update
-# yes | apt-get -q -y -o 'DPkg::Options::=--force-confold' dist-upgrade
-apt-get autoclean
-apt-get clean
+yes | apt-get -qq -y -o 'DPkg::Options::=--force-confold' dist-upgrade
+apt-get -qq autoclean
+apt-get -qq clean
 
 echo "##### Getting compilers"
 
@@ -75,18 +72,14 @@ checkInstalled acl
 
 cat /etc/fstab | grep acl > /dev/null
 result=$?
-if [[ $result == 0 ]]; then
-    printf '  -> Not updating the precise64-root, already done\n'
-else
+if [[ $result != 0 ]]; then
     cat /etc/fstab | grep -v precise64-root > /etc/fstab.tmp
     cat /etc/fstab | grep precise64-root | sed "s/remount-ro/remount-ro,acl,noatime,nodiratime/" >> /etc/fstab.tmp
     mv /etc/fstab.tmp /etc/fstab
 fi
 cat /etc/fstab | grep tmpfs > /dev/null
 result=$?
-if [[ $result == 0 ]]; then
-    printf '  -> Not adding the tmpfs, already done\n'
-else
+if [[ $result != 0 ]]; then
     echo "tmpfs /tmp tmpfs defaults,nosuid,noatime,nodiratime 0 0" >> /etc/fstab
 fi
 
@@ -122,20 +115,28 @@ echo "##### Installing apache"
 
 checkInstalled apache2 apache2-mpm-worker apache2-threaded-dev libapache2-mod-rpaf libapache2-mod-fastcgi
 
-a2enmod rewrite
-a2enmod ssl
-
-a2dissite 000-default
-
+if [ ! -L /etc/apache2/mods-enabled/rewrite.load ]; then
+    a2enmod rewrite
+fi
+if [ ! -L /etc/apache2/mods-enabled/ssl.load ]; then
+    a2enmod ssl
+fi
+if [ -L /etc/apache2/sites-enabled/000-default ]; then
+    a2dissite 000-default
+fi
 
 echo "##### Installing mysql"
 
-checkInstalled percona-server-server-5.5
-checkInstalled percona-server-client-5.5
-checkInstalled percona-toolkit
+checkInstalled percona-server-server-5.5 percona-server-client-5.5 percona-toolkit
 
-mysql -uroot -e "UPDATE mysql.user SET Password = PASSWORD('$MYSQLROOTPASSWD') WHERE User = 'root'; DELETE FROM mysql.user WHERE User=''; DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); DROP DATABASE IF EXISTS test; FLUSH PRIVILEGES;"
-cp $INSTALLBASE/provisioning/etc/mysql/tuning.cnf /etc/mysql/conf.d/
+mysql -u root -e ";" 2> /dev/null
+result=$?
+if [[ $result == 0 ]]; then
+    mysql -uroot -e "UPDATE mysql.user SET Password = PASSWORD('$MYSQLROOTPASSWD') WHERE User = 'root'; DELETE FROM mysql.user WHERE User=''; DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); DROP DATABASE IF EXISTS test; FLUSH PRIVILEGES;"
+    cp $INSTALLBASE/provisioning/etc/mysql/tuning.cnf /etc/mysql/conf.d/
+fi
+
+
 
 exit 1
 
