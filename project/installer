@@ -1,0 +1,8 @@
+echo "##### Run maintenance"
+
+cd /opt/kServer
+cp config/config.yml.dist config/config.yml
+sed 's@false@true@' -i config/config.yml
+./kserver maintenance
+service apache2 restart
+service php5-fpm restart
