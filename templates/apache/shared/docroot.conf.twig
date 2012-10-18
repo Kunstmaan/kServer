@@ -6,8 +6,8 @@ AllowOverride None
 </Directory>
 
 <Directory {{ documentRoot }}>
-    Options Indexes FollowSymLinks MultiViews
-    AllowOverride None
+    Options -Indexes MultiViews Includes FollowSymLinks
+    AllowOverride All
     Order allow,deny
-    allow from all
+    Allow from all
 </Directory>
