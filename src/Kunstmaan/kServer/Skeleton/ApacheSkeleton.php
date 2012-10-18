@@ -112,6 +112,7 @@ class ApacheSkeleton extends AbstractSkeleton
                 "apacheConfig" => $apacheConf,
                 "localAliases" => $localAliases,
                 "projectPath" => $app["config"]["projects"]["path"],
+                "logLocation" => $app["config"]["projects"]["path"] . "/" . $project->getName() . "/apachelogs",
                 "documentRoot" => $app["config"]["projects"]["path"] . "/" . $project->getName() . "/current/" . $apacheConf->getWebDir());
 
         $finder = new Finder();
