@@ -4,38 +4,94 @@ export DEBIAN_FRONTEND=noninteractive
 export INSTALLBASE=$1
 export MYSQLROOTPASSWD=$2
 export NEWRELICKEY=$3
+export PROXY=$4
+
+checkInstalled(){
+    LIST=""
+    PACKAGES=$(echo "$1" | tr " " "\n")
+    for PACKAGE in $PACKAGES; do
+        dpkg -l ${PACKAGE}  | grep '^i' > /dev/null
+        result=$?
+        if [[ $result == 0 ]] ; then
+            printf '  -> Skipping installing "%s", already installed\n' "${1}"
+        else
+            LIST="$LIST $PACKAGE"
+        fi
+    done
+    yes | apt-get -y -qq install $LIST
+}
+
+checkKeyAdded(){
+    apt-key list | grep ${1} > /dev/null
+    result=$?
+    if [[ $result == 0 ]]; then
+        printf '  -> Skipping requesting gpg key "%s", already installed\n' "${1}"
+    else
+        apt-key adv --keyserver ${2} --recv-keys ${1}
+    fi
+}
+
+checkRepoInstalled(){
+    mkdir -p /etc/apt/sources.list.d/
+    grep -h ^deb /etc/apt/sources.list /etc/apt/sources.list.d/* | grep -v ^deb-src | grep ${1} > /dev/null
+    result=$?
+    if [[ $result == 0 ]]; then
+        printf '  -> Skipping adding "%s", already installed\n' "${1}"
+    else
+        add-apt-repository -y "${2}"
+    fi
+}
 
 echo "##### Making sure everything is up to date"
 
 sed 's@us.archive.ubuntu.com@be.archive.ubuntu.com@' -i /etc/apt/sources.list
-apt-get update
-yes | apt-get -y install python-software-properties
-add-apt-repository -y ppa:ondrej/php5
-add-apt-repository -y ppa:arnaud-hartmann/glances-stable
-wget -O /etc/apt/sources.list.d/newrelic.list http://download.newrelic.com/debian/newrelic.list
-apt-key adv --keyserver hkp://subkeys.pgp.net --recv-keys 548C16BF
-gpg --keyserver hkp://keys.gnupg.net --recv-keys 1C4CBDCDCD2EFD2A
-gpg -a --export CD2EFD2A | apt-key add -
-echo "deb http://repo.percona.com/apt precise main" > /etc/apt/sources.list.d/percona.list
-apt-get update
+if [[ $PROXY ]]; then
+    echo 'Acquire::http { Proxy "$PROXY"; };' > /etc/apt/apt.conf.d/01proxy
+fi
+
+apt-get -qq update
+yes | apt-get -y -qq install python-software-properties
+
+#checkInstalled python-software-properties
+checkRepoInstalled 'php5' 'ppa:ondrej/php5'
+checkRepoInstalled 'glances-stable' 'ppa:arnaud-hartmann/glances-stable'
+checkKeyAdded '548C16BF' 'hkp://subkeys.pgp.net'
+checkRepoInstalled 'newrelic' 'deb http://apt.newrelic.com/debian/ newrelic non-free'
+checkKeyAdded 'CD2EFD2A' 'hkp://keys.gnupg.net'
+checkRepoInstalled 'percona' 'deb http://repo.percona.com/apt precise main'
+
+apt-get -qq update
+# yes | apt-get -q -y -o 'DPkg::Options::=--force-confold' dist-upgrade
 apt-get autoclean
-yes | apt-get -q -y -o 'DPkg::Options::=--force-confold' dist-upgrade
-yes | apt-get -y install build-essential
+apt-get clean
 
-echo "##### Setting up ACL"
+echo "##### Getting compilers"
 
-yes | apt-get -y -q install acl
-cat /etc/fstab | grep -v precise64-root > /etc/fstab.tmp
-cat /etc/fstab | grep precise64-root | sed "s/remount-ro/remount-ro,acl,noatime,nodiratime/" >> /etc/fstab.tmp
-mv /etc/fstab.tmp /etc/fstab
+checkInstalled build-essential
 
-if cat /etc/fstab | grep tmpfs; then
-    echo "Not updating fstab, already done"
+echo "##### Setting up ACL and other fstab performance fixes"
+
+checkInstalled acl
+
+cat /etc/fstab | grep acl > /dev/null
+result=$?
+if [[ $result == 0 ]]; then
+    printf '  -> Not updating the precise64-root, already done\n'
 else
-    echo "tmpfs /tmp tmpfs defaults,nosuid,noatime 0 0" >> /etc/fstab
+    cat /etc/fstab | grep -v precise64-root > /etc/fstab.tmp
+    cat /etc/fstab | grep precise64-root | sed "s/remount-ro/remount-ro,acl,noatime,nodiratime/" >> /etc/fstab.tmp
+    mv /etc/fstab.tmp /etc/fstab
+fi
+cat /etc/fstab | grep tmpfs > /dev/null
+result=$?
+if [[ $result == 0 ]]; then
+    printf '  -> Not adding the tmpfs, already done\n'
+else
+    echo "tmpfs /tmp tmpfs defaults,nosuid,noatime,nodiratime 0 0" >> /etc/fstab
 fi
 
 mount -a
+mount -o remount /
 
 echo "##### Configuring the scheduler..."
 
@@ -46,14 +102,15 @@ fi
 
 echo "##### Add some services and settings based on the scalingphp ebook"
 
-yes | apt-get -y -q install nscd
-service nscd start
+checkInstalled nscd
+service nscd status | grep running > /dev/null
+result=$?
+if [[ $result == 1 ]]; then
+    service nscd start
+fi
 
-sysctl -w net.core.somaxconn=100000
-sysctl -w net.ipv4.ip_local_port_range="10000 61000"
-sysctl -w net.ipv4.tcp_tw_reuse=1
-sysctl -w vm.swappiness=0
 cat $INSTALLBASE/provisioning/etc/sysctl.d/50-tuning.conf > /etc/sysctl.d/50-tuning.conf
+sysctl -p
 
 ulimit -n 100000
 cat $INSTALLBASE/provisioning/etc/security/limits.conf > /etc/security/limits.conf
@@ -62,7 +119,8 @@ echo noop > /sys/block/sda/queue/scheduler
 ## TODO add this to rc.local
 
 echo "##### Installing apache"
-yes | apt-get -y -q install apache2 apache2-mpm-worker apache2-threaded-dev libapache2-mod-rpaf libapache2-mod-fastcgi
+
+checkInstalled apache2 apache2-mpm-worker apache2-threaded-dev libapache2-mod-rpaf libapache2-mod-fastcgi
 
 a2enmod rewrite
 a2enmod ssl
@@ -72,9 +130,14 @@ a2dissite 000-default
 
 echo "##### Installing mysql"
 
-yes | apt-get -y -q install percona-server-server-5.5 percona-server-client-5.5 percona-toolkit
+checkInstalled percona-server-server-5.5
+checkInstalled percona-server-client-5.5
+checkInstalled percona-toolkit
+
 mysql -uroot -e "UPDATE mysql.user SET Password = PASSWORD('$MYSQLROOTPASSWD') WHERE User = 'root'; DELETE FROM mysql.user WHERE User=''; DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); DROP DATABASE IF EXISTS test; FLUSH PRIVILEGES;"
 cp $INSTALLBASE/provisioning/etc/mysql/tuning.cnf /etc/mysql/conf.d/
+
+exit 1
 
 echo "##### Installing PHP"
 yes | apt-get -y -q install sysv-rc-conf php5-fpm php5-mysqlnd php5-mcrypt php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev

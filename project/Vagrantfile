@@ -11,7 +11,7 @@ Vagrant::Config.run do |config|
   projectname=File.basename(File.dirname(__FILE__)).gsub(/\s+/, "").downcase # or customize by hand!
 
   config.vm.share_folder("kserver", "/opt/kServer", "kserver")
-  config.vm.share_folder("www", "/var/www/#{projectname}", ".")
+  config.vm.share_folder("www", "/var/www/#{projectname}", ".", :nfs => true)
 
   config.vm.customize ["modifyvm", :id, "--memory", 1024]
 
@@ -22,6 +22,6 @@ Vagrant::Config.run do |config|
   config.vm.host_name = "#{projectname}.dev.kunstmaan.be"
   config.hosts.aliases = "www.#{projectname}.dev.kunstmaan.be"
 
-  #config.vm.provision :shell, :path => "kserver/provisioning/installer", :args => "/vagrant/kserver vagrant newrelickey"
+  config.vm.provision :shell, :path => "kserver/provisioning/installer", :args => "/vagrant/kserver vagrant newrelickey 'http://uranus.kunstmaan.be:3142'"
   config.vm.provision :shell, :path => "kserver/project/installer"
 end
