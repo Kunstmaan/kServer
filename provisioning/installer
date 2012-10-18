@@ -9,7 +9,7 @@ export PROXY=$4
 checkInstalled(){
     LIST=""
     for PACKAGE in $@; do
-        dpkg -l ${PACKAGE}  | grep '^i' > /dev/null
+        dpkg -l ${PACKAGE} 2> /dev/null | grep '^i' &> /dev/null
         result=$?
         if [[ $result != 0 ]] ; then
             LIST="$LIST $PACKAGE"
@@ -115,12 +115,15 @@ echo "##### Installing apache"
 
 checkInstalled apache2 apache2-mpm-worker apache2-threaded-dev libapache2-mod-rpaf libapache2-mod-fastcgi
 
-if [ ! -L /etc/apache2/mods-enabled/rewrite.load ]; then
-    a2enmod rewrite
-fi
-if [ ! -L /etc/apache2/mods-enabled/ssl.load ]; then
-    a2enmod ssl
-fi
+checkApacheModuleLoaded(){
+    if [ ! -L /etc/apache2/mods-enabled/$1.load ]; then
+        a2enmod $1
+    fi
+}
+
+checkApacheModuleLoaded rewrite
+checkApacheModuleLoaded ssl
+
 if [ -L /etc/apache2/sites-enabled/000-default ]; then
     a2dissite 000-default
 fi
@@ -136,59 +139,65 @@ if [[ $result == 0 ]]; then
     cp $INSTALLBASE/provisioning/etc/mysql/tuning.cnf /etc/mysql/conf.d/
 fi
 
-
-
-exit 1
-
 echo "##### Installing PHP"
-yes | apt-get -y -q install sysv-rc-conf php5-fpm php5-mysqlnd php5-mcrypt php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev
-yes | pecl install imagick-beta
-yes | pecl install APC-beta
-echo "extension=imagick.so" > /etc/php5/conf.d/50-imagick.ini
+checkInstalled sysv-rc-conf php5-fpm php5-mysqlnd php5-mcrypt php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev
+
+checkPHPModuleLoaded(){
+    php -m | grep $1 > /dev/null
+    result=$?
+    if [[ $result != 0 ]]; then
+        yes | pecl install $2
+    fi
+}
+checkPHPModuleLoaded imagick imagick-beta
+checkPHPModuleLoaded apc APC-beta
 cat $INSTALLBASE/provisioning/etc/php5/conf.d/50-apc.ini > /etc/php5/conf.d/50-apc.ini
+cat $INSTALLBASE/provisioning/etc/php5/conf.d/50-imagick.ini > /etc/php5/conf.d/50-imagick.ini
 cat $INSTALLBASE/provisioning/etc/php5/conf.d/99-kunstmaan.ini > /etc/php5/conf.d/99-kunstmaan.ini
 
 echo "##### Setting up FPM"
 
-a2enmod actions
-a2enmod fastcgi
+checkApacheModuleLoaded actions
+checkApacheModuleLoaded fastcgi
 cp $INSTALLBASE/provisioning/etc/apache/fastcgi.conf /etc/apache2/mods-available/fastcgi.conf
 sysv-rc-conf --level 2345 php5-fpm on
 
 
-echo "##### Configuring newrelic"
+if [ ! -d "/vagrant" ]; then
+    echo "##### Configuring newrelic"
 
-yes | apt-get -y -q install newrelic-sysmond newrelic-php5
-nrsysmond-config --set license_key=$NEWRELICKEY
-/etc/init.d/newrelic-sysmond start
-export NR_INSTALL_SILENT=true
-export NR_INSTALL_KEY=$NEWRELICKEY
-newrelic-install install
-/etc/init.d/newrelic-daemon restart
+    checkInstalled newrelic-sysmond newrelic-php5
+    nrsysmond-config --set license_key=$NEWRELICKEY
+    /etc/init.d/newrelic-sysmond start
+    export NR_INSTALL_SILENT=true
+    export NR_INSTALL_KEY=$NEWRELICKEY
+    newrelic-install install
+    /etc/init.d/newrelic-daemon restart
+fi
 
 echo "##### Configuring GIT"
 
-yes | apt-get -y -q install git
-mkdir -p ~/.ssh/
-ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-ssh-add -L
-
-echo "Defaults        env_keep+=SSH_AUTH_SOCK" > /etc/sudoers.d/env
-chmod 440 /etc/sudoers.d/env
+checkInstalled git
 
 echo "##### Setting up Varnish"
-yes | apt-get -y -q install varnish
+
+checkInstalled varnish
 cp $INSTALLBASE/provisioning/etc/varnish/default.vcl /etc/varnish/default.vcl
 
+
 echo "##### Generating locales"
-locale-gen nl_BE
-locale-gen fr_BE
-locale-gen en_GB
-locale-gen es_ES
-locale-gen nl_BE.utf8
-locale-gen fr_BE.utf8
-locale-gen en_GB.utf8
-locale-gen es_ES.utf8
+
+checkLocales(){
+    for LOCALE in $@; do
+        locale -a | grep $LOCALE &> /dev/null
+        result=$?
+        if [[ $result != 0 ]] ; then
+            locale-gen $1
+        fi
+    done
+}
+
+checkLocales nl_BE fr_BE en_GB es_ES nl_BE.utf8 fr_BE.utf8 en_GB.utf8 es_ES.utf8
 
 echo "##### Create hosting folders"
 
@@ -198,20 +207,28 @@ echo "##### Adding some custom development settings"
 cd /tmp/
 git clone https://github.com/roderik/dotfiles.git
 cd /tmp/dotfiles
-rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" --exclude "Sublime Text 2" --exclude "README.md" -av . /root/
-rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" --exclude "Sublime Text 2" --exclude "README.md" -av . /home/vagrant
+rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" --exclude "Sublime Text 2" --exclude "README.md" -a . /root/
+rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" --exclude "Sublime Text 2" --exclude "README.md" -a . /home/vagrant
+cd
+rm -Rf /tmp/dotfiles
 
 echo "##### Installing various useful packages"
 
-yes | apt-get -y -q install ntp optipng jpegoptim curl glances htop
-gem install kstrano
-curl -s https://getcomposer.org/installer | php
-mv composer.phar /usr/local/bin/composer
-chmod a+x /usr/local/bin/composer
+checkInstalled ntp optipng jpegoptim curl glances htop
+gem list --local | grep kstrano > /dev/null
+result=$?
+if [[ result != 0 ]]; then
+    gem install kstrano
+fi
+if [[ ! -f /usr/local/bin/composer ]]; then
+    curl -s https://getcomposer.org/installer | php
+    mv composer.phar /usr/local/bin/composer
+    chmod a+x /usr/local/bin/composer
+fi
 
 echo "##### Setting up Postfix"
 
-yes | apt-get -y -q install postfix
+checkInstalled postfix
 cat /etc/postfix/main.cf | sed -e "s/`hostname`/`hostname`.kunstmaan.be/g" > /etc/postfix/main.cf
 echo "`hostname`.kunstmaan.be" > /etc/mailname
 
