@@ -8,6 +8,7 @@ use Cilex\Application;
 use Kunstmaan\kServer\Provider\FileSystemProvider;
 use Kunstmaan\kServer\Provider\ProcessProvider;
 use Symfony\Component\Console\Output\OutputInterface;
+use Kunstmaan\kServer\Helper\OutputUtil;
 
 /**
  * PermissionsProvider
@@ -125,7 +126,13 @@ class PermissionsProvider implements ServiceProviderInterface
         /** @var $filesystem FileSystemProvider */
         $filesystem = $this->app['filesystem'];
         foreach ($project->getPermissionDefinitions() as $pd) {
-            $this->process->executeCommand('chown ' . $pd->getOwnership() . ' ' . $filesystem->getProjectDirectory($project->getName()) . $pd->getPath(), $output);
+            $thePath = $filesystem->getProjectDirectory($project->getName()) . $pd->getPath();
+            $fstype = $this->process->executeCommand("stat -f -L -c %T " . $thePath, $output);
+            if (trim($fstype) != "nfs"){
+                $this->process->executeCommand('chown ' . $pd->getOwnership() . ' ' . $thePath, $output);
+            } else {
+                OutputUtil::log($output, OutputInterface::VERBOSITY_VERBOSE, "!", $thePath . " is on an NFS share, do not chown");
+            }
         }
     }
 
