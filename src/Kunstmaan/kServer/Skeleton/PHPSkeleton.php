@@ -41,21 +41,10 @@ class PHPSkeleton extends AbstractSkeleton
         $process = $app["process"];
         /** @var $filesystem FileSystemProvider */
         $filesystem = $app["filesystem"];
-        //$filesystem->createProjectConfigDirectory($project, $output);
-        $filesystem->createDirectory($project, $output, 'php5-fpm');
 
         $process->executeCommand("rsync -avh --exclude \"apache\" " . $this->getTemplateDir() . " " . $filesystem->getProjectConfigDirectory($project->getName()), $output);
 
         $process->executeCommand("rsync -avh " . $this->getTemplateDir() . "/apache/ " . $filesystem->getProjectConfigDirectory($project->getName()). "/apache/", $output);
-
-        $permissionDefinition = new PermissionDefinition();
-        $permissionDefinition->setName("php5-fpm");
-        $permissionDefinition->setPath("/php5-fpm");
-        $permissionDefinition->setOwnership("-R " . $project->getName() . "." . $project->getName());
-        $permissionDefinition->addAcl("-R -m user::rwx");
-        $permissionDefinition->addAcl("-R -m group::r-x");
-        $permissionDefinition->addAcl("-R -m other::r-x");
-        $project->addPermissionDefinition($permissionDefinition);
 
     }
 

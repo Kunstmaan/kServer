@@ -47,9 +47,8 @@ class ProjectConfigProvider implements ServiceProviderInterface
     {
         /** @var $filesystem FileSystemProvider */
         $filesystem = $this->app['filesystem'];
-        $projectpath = $filesystem->getProjectDirectory($projectname);
-        $configPath = $projectpath . '/current/config/project.yml';
-        OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, "Creating new Project object named $projectname in $projectpath/current/config/project.yml");
+        $configPath = $filesystem->getProjectConfigDirectory($projectname)."/project.yml";
+        OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, "Creating new Project object named $projectname in $configPath");
         $project = new Project($projectname, $configPath);
 
         return $project;
@@ -65,8 +64,7 @@ class ProjectConfigProvider implements ServiceProviderInterface
     {
         /* @var $filesystem FileSystemProvider */
         $filesystem = $this->app['filesystem'];
-        $projectpath = $filesystem->getProjectDirectory($projectname);
-        $configPath = $projectpath . '/current/config/project.yml';
+        $configPath = $filesystem->getProjectConfigDirectory($projectname)."/project.yml";
         $project = new Project($projectname, $configPath);
 
         $skeletons = $this->app["config"]["skeletons"];
@@ -94,8 +92,7 @@ class ProjectConfigProvider implements ServiceProviderInterface
     {
         /* @var $filesystem FileSystemProvider */
         $filesystem = $this->app['filesystem'];
-        $projectpath = $filesystem->getProjectDirectory($project->getName());
-        $configPath = $projectpath . '/current/config/project.yml';
+        $configPath = $filesystem->getProjectConfigDirectory($project->getName())."/project.yml";
         OutputUtil::log($output, OutputInterface::VERBOSITY_VERBOSE, "Writing the project config to " . $configPath);
 
         $config = new \ArrayObject();

@@ -76,7 +76,7 @@ class FileSystemProvider implements ServiceProviderInterface
      */
     public function getProjectConfigDirectory($projectname)
     {
-        return $this->getProjectDirectory($projectname)."/current/config";
+        return $this->getProjectDirectory($projectname)."/current/kconfig";
     }
 
     /**
@@ -102,8 +102,8 @@ class FileSystemProvider implements ServiceProviderInterface
         if (is_null($this->process)) {
             $this->process = $this->app["process"];
         }
-        $this->process->executeCommand('mkdir -p ' . $projectDirectory . '/releases/init/config', $output);
-        $this->process->executeCommand('ln -s ' . $projectDirectory . '/releases/init/ '.$projectDirectory.'/current', $output);
+        $this->process->executeCommand('mkdir -p ' . $projectDirectory . '/working-copy/kconfig', $output);
+        $this->process->executeCommand('ln -s ' . $projectDirectory . '/working-copy '.$projectDirectory.'/current', $output);
     }
 
     /**
