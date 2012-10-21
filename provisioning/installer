@@ -27,38 +27,41 @@ checkKeyAdded(){
 }
 
 checkRepoInstalled(){
-    mkdir -p /etc/apt/sources.list.d/
-    grep -h ^deb /etc/apt/sources.list /etc/apt/sources.list.d/* | grep -v ^deb-src | grep ${1} > /dev/null
-    result=$?
-    if [[ $result != 0 ]]; then
+#    mkdir -p /etc/apt/sources.list.d/
+#    touch /etc/apt/sources.list.d/.keep
+#    grep -h ^deb /etc/apt/sources.list /etc/apt/sources.list.d/*.list | grep -v ^deb-src | grep ${1} > /dev/null
+#    result=$?
+#    if [[ $result != 0 ]]; then
         if [[ "$3" == "true" ]]; then
             echo "$2" > /etc/apt/sources.list.d/$1.list
         else
             add-apt-repository -y "${2}"
         fi
-    fi
+#    fi
 }
 
 echo "##### Making sure everything is up to date"
 
 sed 's@us.archive.ubuntu.com@be.archive.ubuntu.com@' -i /etc/apt/sources.list
 if [[ $PROXY ]]; then
-    echo 'Acquire::http { Proxy "$PROXY"; };' > /etc/apt/apt.conf.d/01proxy
+    value="Acquire::http { Proxy \"$PROXY\"; };"
+    echo $value > /etc/apt/apt.conf.d/01proxy
 fi
 
-apt-get -qq update
-yes | apt-get -y -qq install python-software-properties
+yes | apt-get -y -qq update
+yes | apt-get -y -qq install python-software-properties software-properties-common
+yes | apt-get -y -qq -o 'DPkg::Options::=--force-confold' dist-upgrade
 
 #checkInstalled python-software-properties
-checkRepoInstalled 'php5' 'ppa:ondrej/php5'
-checkRepoInstalled 'glances-stable' 'ppa:arnaud-hartmann/glances-stable'
+#checkRepoInstalled 'php5' 'ppa:ondrej/php5'
 checkKeyAdded '548C16BF' 'hkp://subkeys.pgp.net'
 checkRepoInstalled 'newrelic' 'deb http://apt.newrelic.com/debian/ newrelic non-free' true
 checkKeyAdded 'CD2EFD2A' 'hkp://keys.gnupg.net'
 checkRepoInstalled 'percona' 'deb http://repo.percona.com/apt precise main' true
+#checkRepoInstalled 'glances-stable' 'ppa:arnaud-hartmann/glances-stable'
 
-apt-get -qq update
-yes | apt-get -qq -y -o 'DPkg::Options::=--force-confold' dist-upgrade
+yes | apt-get -qq -y update
+yes | apt-get -y -qq -o 'DPkg::Options::=--force-confold' dist-upgrade
 apt-get -qq autoclean
 apt-get -qq clean
 
@@ -140,7 +143,7 @@ if [[ $result == 0 ]]; then
 fi
 
 echo "##### Installing PHP"
-checkInstalled sysv-rc-conf php5-fpm php5-mysqlnd php5-mcrypt php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev
+checkInstalled sysv-rc-conf php5-fpm php5-mysqlnd php5-mcrypt php5-imagick php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev
 
 checkPHPModuleLoaded(){
     php -m | grep $1 > /dev/null
@@ -149,10 +152,8 @@ checkPHPModuleLoaded(){
         yes | pecl install $2
     fi
 }
-checkPHPModuleLoaded imagick imagick-beta
 checkPHPModuleLoaded apc APC-beta
 cat $INSTALLBASE/provisioning/etc/php5/conf.d/50-apc.ini > /etc/php5/conf.d/50-apc.ini
-cat $INSTALLBASE/provisioning/etc/php5/conf.d/50-imagick.ini > /etc/php5/conf.d/50-imagick.ini
 cat $INSTALLBASE/provisioning/etc/php5/conf.d/99-kunstmaan.ini > /etc/php5/conf.d/99-kunstmaan.ini
 
 echo "##### Setting up FPM"
@@ -214,7 +215,7 @@ rm -Rf /tmp/dotfiles
 
 echo "##### Installing various useful packages"
 
-checkInstalled ntp optipng jpegoptim curl glances htop
+checkInstalled ntp optipng jpegoptim curl htop
 gem list --local | grep kstrano > /dev/null
 result=$?
 if [[ result != 0 ]]; then
