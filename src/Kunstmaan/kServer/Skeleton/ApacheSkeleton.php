@@ -78,9 +78,6 @@ class ApacheSkeleton extends AbstractSkeleton
         $permissionDefinition->setOwnership("-R " . $project->getName() . "." . $project->getName());
         $permissionDefinition->addAcl("-R -m u:" . $app["config"]["apache"]["user"] . ":r-X");
         $project->addPermissionDefinition($permissionDefinition);
-
-        $filesystem->createDirectory($project, $output, "apachelogs");
-        $project->setLogPath("apachelogs");
     }
 
     /**
@@ -112,7 +109,7 @@ class ApacheSkeleton extends AbstractSkeleton
                 "apacheConfig" => $apacheConf,
                 "localAliases" => $localAliases,
                 "projectPath" => $app["config"]["projects"]["path"],
-                "logLocation" => $app["config"]["projects"]["path"] . "/" . $project->getName() . "/apachelogs",
+                "logLocation" => "/var/log/apache2",
                 "documentRoot" => $app["config"]["projects"]["path"] . "/" . $project->getName() . "/current/" . $apacheConf->getWebDir());
 
         $finder = new Finder();

@@ -48,11 +48,6 @@ class Project
     private $configurations;
 
     /**
-     * @var string
-     */
-    private $logFolder;
-
-    /**
      * @param string $name       The project name
      * @param string $configPath The path of the configuration file
      */
@@ -151,22 +146,6 @@ class Project
     public function setConfiguration($name, $configuration)
     {
         $this->configurations[$name] = $configuration;
-    }
-
-    /**
-     * @param string $logPath
-     */
-    public function setLogPath($logPath)
-    {
-        $this->logPath = $logPath;
-    }
-
-    /**
-     * @return string
-     */
-    public function getLogPath()
-    {
-        return $this->logPath;
     }
 
 }
