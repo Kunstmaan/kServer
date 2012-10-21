@@ -299,7 +299,7 @@ pm.status_path = /status
 ; The log file for slow requests
 ; Default Value: not set
 ; Note: slowlog is mandatory if request_slowlog_timeout is set
-slowlog = /var/www/$pool/apachelogs/slow.log
+slowlog = /var/log/$pool-slow.log
 
 ; The timeout for serving a single request after which a PHP backtrace will be
 ; dumped to the 'slowlog' file. A value of '0s' means 'off'.
