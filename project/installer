@@ -5,6 +5,9 @@ cp config/config.yml.dist config/config.yml
 sed 's@false@true@' -i config/config.yml
 sed 's@hostname:@hostname: dev.kunstmaan.be@' -i config/config.yml
 
+ln -sf /var/www/$1/working-copy /var/www/$1/current
+mkdir -p /var/www/$1/.ssh
+
 ./kserver -v maintenance
 service apache2 restart
 service php5-fpm restart

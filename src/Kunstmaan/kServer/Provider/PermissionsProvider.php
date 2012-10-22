@@ -127,11 +127,11 @@ class PermissionsProvider implements ServiceProviderInterface
         $filesystem = $this->app['filesystem'];
         foreach ($project->getPermissionDefinitions() as $pd) {
             $thePath = $filesystem->getProjectDirectory($project->getName()) . $pd->getPath();
-            $fstype = $this->process->executeCommand("stat -f -L -c %T " . $thePath, $output);
-            if (trim($fstype) != "nfs"){
+            $dirContainsNFS = $this->process->executeCommand("mount | grep nfs | grep $thePath", $output);
+            if (empty($dirContainsNFS)){
                 $this->process->executeCommand('chown ' . $pd->getOwnership() . ' ' . $thePath, $output);
             } else {
-                OutputUtil::log($output, OutputInterface::VERBOSITY_VERBOSE, "!", $thePath . " is on an NFS share, do not chown");
+                OutputUtil::log($output, OutputInterface::VERBOSITY_VERBOSE, "!", $thePath . " or ".$thePath . "/working-copy is on an NFS share, do not chown");
             }
         }
     }
