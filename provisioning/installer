@@ -215,11 +215,6 @@ rm -Rf /tmp/dotfiles
 echo "##### Installing various useful packages"
 
 checkInstalled ntp optipng jpegoptim curl htop
-gem list --local | grep kstrano > /dev/null
-result=$?
-if [[ result != 0 ]]; then
-    gem install kstrano
-fi
 if [[ ! -f /usr/local/bin/composer ]]; then
     curl -s https://getcomposer.org/installer | php
     mv composer.phar /usr/local/bin/composer
