@@ -143,7 +143,7 @@ if [[ $result == 0 ]]; then
 fi
 
 echo "##### Installing PHP"
-checkInstalled sysv-rc-conf php5-fpm php5-mysqlnd php5-mcrypt php5-imagick php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev
+checkInstalled sysv-rc-conf php5-fpm php5-mysqlnd php5-mcrypt php-apc php5-imagick php5-cli php5-gd php5-memcached php5-curl php5-intl php5-dev php-pear build-essential libmagick++-dev
 
 checkPHPModuleLoaded(){
     php -m | grep $1 > /dev/null
@@ -152,7 +152,6 @@ checkPHPModuleLoaded(){
         yes | pecl install $2
     fi
 }
-checkPHPModuleLoaded apc APC-beta
 cat $INSTALLBASE/provisioning/etc/php5/conf.d/50-apc.ini > /etc/php5/conf.d/50-apc.ini
 cat $INSTALLBASE/provisioning/etc/php5/conf.d/99-kunstmaan.ini > /etc/php5/conf.d/99-kunstmaan.ini
 
