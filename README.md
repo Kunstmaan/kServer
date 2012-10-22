@@ -54,6 +54,10 @@ cd kserver
 composer install
 cd ..
 ln -sf kserver/project/Vagrantfile Vagrantfile
+cp -r kserver/project/kconfig .
+sed 's@NAME.NAME@kunstmaansandbox.kunstmaansandbox@' kconfig/project.yml > /tmp/project.yml
+sed 's@NAME@kunstmaansandbox@' /tmp/project.yml > kconfig/project.yml
+vagrant up
 ```
 
 ### Running on a server
