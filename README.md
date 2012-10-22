@@ -25,8 +25,30 @@ TODO: add more specific information
 
 ### Running under Vagrant
 
-Running kServer in Vagrant is easy. Just run ```vagrant up```. It will start from the stock precise64 image from the vagrant
-site and mount kServer in /opt/kServer.
+#### Installing this website on your development machine using kServer
+
+```
+git clone git@github.com:Kunstmaan/KunstmaanBundles.git
+cd KunstmaanBundles
+./param decode
+composer install
+git submodule -f add git@github.com:Kunstmaan/kServer.git kserver
+cd kserver
+composer install
+cd ..
+ln -sf kserver/project/Vagrantfile Vagrantfile
+vagrant up
+open http://kunstmaanbundles.dev.kunstmaan.be
+```
+
+#### Migrating an existing website, example with the Sandbox
+
+```
+git clone git@github.com:Kunstmaan/KunstmaanSandbox.git
+cd KunstmaanSandbox
+composer install
+
+```
 
 ### Running on a server
 
