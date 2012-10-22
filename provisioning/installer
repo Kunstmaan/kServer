@@ -43,7 +43,7 @@ checkRepoInstalled(){
 echo "##### Making sure everything is up to date"
 
 sed 's@us.archive.ubuntu.com@be.archive.ubuntu.com@' -i /etc/apt/sources.list
-if [[ $PROXY ]]; then
+if `wget uranus.kunstmaan.be:3142/acng-report.html --timeout 1 --tries=1 -O - &> /dev/null` ; then
     value="Acquire::http { Proxy \"$PROXY\"; };"
     echo $value > /etc/apt/apt.conf.d/01proxy
 fi
