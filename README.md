@@ -32,7 +32,7 @@ git clone git@github.com:Kunstmaan/KunstmaanBundles.git
 cd KunstmaanBundles
 ./param decode
 composer install
-git submodule -f add git@github.com:Kunstmaan/kServer.git kserver
+git submodule add -f git@github.com:Kunstmaan/kServer.git kserver
 cd kserver
 composer install
 cd ..
@@ -46,8 +46,14 @@ open http://kunstmaanbundles.dev.kunstmaan.be
 ```
 git clone git@github.com:Kunstmaan/KunstmaanSandbox.git
 cd KunstmaanSandbox
+# ./param decode (for the Kunstmaan projects)
+cp app/config/parameters.yml.dist app/config/parameters.yml
 composer install
-
+git submodule add -f git@github.com:Kunstmaan/kServer.git kserver
+cd kserver
+composer install
+cd ..
+ln -sf kserver/project/Vagrantfile Vagrantfile
 ```
 
 ### Running on a server

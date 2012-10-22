@@ -1,0 +1,32 @@
+kserver:
+    dependencies:
+        base: Kunstmaan\kServer\Skeleton\BaseSkeleton
+        php: Kunstmaan\kServer\Skeleton\PHPSkeleton
+        apache: Kunstmaan\kServer\Skeleton\ApacheSkeleton
+    name: NAME
+    permissions:
+        root:
+            path: /
+            ownership: '-R NAME.NAME'
+            acl:
+                - '-R -m user::rwx'
+                - '-R -m group::---'
+                - '-R -m other::---'
+        ssh:
+            path: /.ssh
+            ownership: '-R NAME.NAME'
+            acl:
+                - '-R -m user::rwX'
+                - '-R -m group::---'
+                - '-R -m other::---'
+                - '-R -m m::---'
+        apache:
+            path: /
+            ownership: '-R NAME.NAME'
+            acl:
+                - '-R -m u:www-data:r-X'
+    backup:
+        excluded: null
+    url: NAME.kunstmaan.be
+    aliases: {  }
+    webdir: web
