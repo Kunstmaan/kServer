@@ -11,13 +11,3 @@ mkdir -p /var/www/$1/.ssh
 ./kserver -v maintenance
 service apache2 restart
 service php5-fpm restart
-
-cd /var/www/$1/current
-php app/console --force doctrine:schema:drop
-php app/console doctrine:schema:create
-php app/console doctrine:fixtures:load
-php app/console assets:install web
-php app/console assetic:dump
-php app/console cache:clear --env=dev
-php app/console cache:clear --env=prod
-php app/console cache:warmup
