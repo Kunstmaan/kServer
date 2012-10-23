@@ -25,7 +25,8 @@ class NewProjectCommand extends AbstractCommand
         $this
             ->setName('new')
             ->setDescription('Create a new kServer project')
-            ->addArgument('name', InputArgument::OPTIONAL, 'The name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive');
+            ->addArgument('name', InputArgument::OPTIONAL, 'The name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive')
+            ->addOption("migrate", null, InputArgument::OPTIONAL, 'If set, the script will apply itself to an existing folder');
     }
 
     /**
@@ -40,13 +41,16 @@ class NewProjectCommand extends AbstractCommand
     {
         $projectname = $this->dialog->askFor('name', "Please enter the name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive", $input);
 
+        OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, ($input->getOption('migrate')?"Migrating":"Creating") . " project $projectname");
+
         // Check if the project exists, do use in creating a new one with the same name.
-        if ($this->filesystem->projectExists($projectname)) {
+        if ($this->filesystem->projectExists($projectname) && !$input->getOption('migrate')) {
             throw new RuntimeException("A project with name $projectname already exists!");
         }
+        if (!$this->filesystem->projectExists($projectname)) {
+            $this->filesystem->createProjectDirectory($projectname, $output);
+        }
 
-        OutputUtil::log($output, OutputInterface::VERBOSITY_NORMAL, "Creating project $projectname");
-        $this->filesystem->createProjectDirectory($projectname, $output);
         $project = $this->projectConfig->createNewProjectConfig($projectname, $output);
         $this->skeleton->applySkeleton($project, $this->skeleton->findSkeleton("base"), $output);
         $this->projectConfig->writeProjectConfig($project, $output);

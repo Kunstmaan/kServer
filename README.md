@@ -27,7 +27,7 @@ TODO: add more specific information
 
 #### Installing this website on your development machine using kServer
 
-```
+```bash
 git clone git@github.com:Kunstmaan/KunstmaanBundles.git
 cd KunstmaanBundles
 ./param decode
@@ -63,7 +63,7 @@ vagrant ssh
 
 In your vagrant box:
 
-```
+```bash
 sudo -i
 ks
 ./kserver new kunstmaansandbox --migration
@@ -73,7 +73,7 @@ ks
 
 Then rsync the database dump and uploaded files to your project
 
-```
+```bash
 rsync -rltD -vh --compress <yourusername>@<theserver>:/home/projects/<oldprojectname>/backup/* /var/www/kunstmaansandbox/backup/
 rsync -rltD -vh --compress <yourusername>@<theserver>:/home/projects/<oldprojectname>/data/current/web/uploads /var/www/kunstmaansandbox/web/
 ```
