@@ -50,6 +50,7 @@ class NewProjectCommand extends AbstractCommand
         if (!$this->filesystem->projectExists($projectname)) {
             $this->filesystem->createProjectDirectory($projectname, $output);
         }
+        $this->process->executeCommand('ln -s ' . $this->filesystem->getProjectDirectory($projectname) . '/working-copy '.$this->filesystem->getProjectDirectory($projectname).'/current', $output);
 
         $project = $this->projectConfig->createNewProjectConfig($projectname, $output);
         $this->skeleton->applySkeleton($project, $this->skeleton->findSkeleton("base"), $output);

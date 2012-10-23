@@ -103,7 +103,6 @@ class FileSystemProvider implements ServiceProviderInterface
             $this->process = $this->app["process"];
         }
         $this->process->executeCommand('mkdir -p ' . $projectDirectory . '/working-copy/kconfig', $output);
-        $this->process->executeCommand('ln -s ' . $projectDirectory . '/working-copy '.$projectDirectory.'/current', $output);
     }
 
     /**
