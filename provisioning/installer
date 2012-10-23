@@ -27,17 +27,11 @@ checkKeyAdded(){
 }
 
 checkRepoInstalled(){
-#    mkdir -p /etc/apt/sources.list.d/
-#    touch /etc/apt/sources.list.d/.keep
-#    grep -h ^deb /etc/apt/sources.list /etc/apt/sources.list.d/*.list | grep -v ^deb-src | grep ${1} > /dev/null
-#    result=$?
-#    if [[ $result != 0 ]]; then
         if [[ "$3" == "true" ]]; then
             echo "$2" > /etc/apt/sources.list.d/$1.list
         else
             add-apt-repository -y "${2}"
         fi
-#    fi
 }
 
 echo "##### Making sure everything is up to date"
@@ -52,13 +46,10 @@ yes | apt-get -y  update
 yes | apt-get -y  install python-software-properties software-properties-common
 yes | apt-get -y  -o 'DPkg::Options::=--force-confold' dist-upgrade
 
-#checkInstalled python-software-properties
-#checkRepoInstalled 'php5' 'ppa:ondrej/php5'
 checkKeyAdded '548C16BF' 'hkp://subkeys.pgp.net'
 checkRepoInstalled 'newrelic' 'deb http://apt.newrelic.com/debian/ newrelic non-free' true
 checkKeyAdded 'CD2EFD2A' 'hkp://keys.gnupg.net'
 checkRepoInstalled 'percona' 'deb http://repo.percona.com/apt precise main' true
-#checkRepoInstalled 'glances-stable' 'ppa:arnaud-hartmann/glances-stable'
 
 yes | apt-get  -y update
 yes | apt-get -y  -o 'DPkg::Options::=--force-confold' dist-upgrade
@@ -164,7 +155,6 @@ sysv-rc-conf --level 2345 php5-fpm on
 
 if [ ! -d "/vagrant" ]; then
     echo "##### Configuring newrelic"
-
     checkInstalled newrelic-sysmond newrelic-php5
     nrsysmond-config --set license_key=$NEWRELICKEY
     /etc/init.d/newrelic-sysmond start
@@ -243,3 +233,5 @@ service php5-fpm restart
 service mysql restart
 service postfix restart
 
+apt-get  autoclean
+apt-get  clean
