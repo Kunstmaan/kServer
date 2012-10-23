@@ -74,8 +74,9 @@ ks
 Then rsync the database dump and uploaded files to your project
 
 ```bash
-rsync -rltD -vh --compress <yourusername>@<theserver>:/home/projects/<oldprojectname>/backup/* /var/www/kunstmaansandbox/backup/
-rsync -rltD -vh --compress <yourusername>@<theserver>:/home/projects/<oldprojectname>/data/current/web/uploads /var/www/kunstmaansandbox/web/
+rsync -rltD -vh --progress --compress <yourusername>@<theserver>:/home/projects/<oldprojectname>/backup/* /var/www/kunstmaansandbox/backup/
+rsync -rltD -vh --progress --compress <yourusername>@<theserver>:/home/projects/<oldprojectname>/data/shared/web/uploads /var/www/kunstmaansandbox/current/web/
+
 ```
 
 
