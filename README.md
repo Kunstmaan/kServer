@@ -41,29 +41,43 @@ vagrant up
 open http://kunstmaanbundles.dev.kunstmaan.be
 ```
 
-#### Migrating an existing website, example with the Sandbox
+#### Migrating an existing Symfony website, example with KunstmaanSandbox
 
 ```
 git clone git@github.com:Kunstmaan/KunstmaanSandbox.git
 cd KunstmaanSandbox
-# ./param decode (for the Kunstmaan projects)
-cp app/config/parameters.yml.dist app/config/parameters.yml
-composer install
+cat <<EOF >> .gitignore
+.gitmodules
+.vagrant
+Vagrantfile
+kserver
+EOF
 git submodule add -f git@github.com:Kunstmaan/kServer.git kserver
 cd kserver
 composer install
 cd ..
 ln -sf kserver/project/Vagrantfile Vagrantfile
-cp -r kserver/project/kconfig .
-sed 's@NAME.NAME@kunstmaansandbox.kunstmaansandbox@' kconfig/project.yml > /tmp/project.yml
-sed 's@NAME@kunstmaansandbox@' /tmp/project.yml > kconfig/project.yml
-vagrant up
+vagrant up # You will see some errors at the end, since maintenance will not work before the creation of the config files
 vagrant ssh
+```
+
+In your vagrant box:
+
+```
 sudo -i
 ks
+./kserver new kunstmaansandbox --migration
 ./kserver apply kunstmaansandbox php
 ./kserver apply kunstmaansandbox mysql
 ```
+
+Then rsync the database dump and uploaded files to your project
+
+```
+rsync -rltD -vh --compress <yourusername>@<theserver>:/home/projects/<oldprojectname>/backup/* /var/www/kunstmaansandbox/backup/
+rsync -rltD -vh --compress <yourusername>@<theserver>:/home/projects/<oldprojectname>/data/current/web/uploads /var/www/kunstmaansandbox/web/
+```
+
 
 ### Running on a server
 
