@@ -43,7 +43,7 @@ open http://kunstmaanbundles.dev.kunstmaan.be
 
 #### Migrating an existing Symfony website, example with KunstmaanSandbox
 
-```
+```bash
 git clone git@github.com:Kunstmaan/KunstmaanSandbox.git
 cd KunstmaanSandbox
 cat <<EOF >> .gitignore
