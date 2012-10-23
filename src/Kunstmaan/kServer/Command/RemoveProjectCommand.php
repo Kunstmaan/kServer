@@ -28,7 +28,7 @@ class RemoveProjectCommand extends AbstractCommand
             ->setName('remove')
             ->setDescription('Removes a kServer project')
             ->addArgument('name', InputArgument::OPTIONAL, 'The name of the project.')
-            ->addArgument("--force", null, InputArgument::OPTIONAL, 'Does not ask before removing');
+            ->addArgument("--force", null, InputOption::VALUE_NONE, 'Does not ask before removing');
     }
 
     /**
