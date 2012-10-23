@@ -90,4 +90,6 @@ apt-get install git
 git clone https://github.com/Kunstmaan/kServer.git
 cd kServer
 bash provisioning/installer /opt/kServer MYSQLROOTPASSWD newrelickey
+cp config.yml.dist config.yml
+vim config.yml # set the hostname
 ```
