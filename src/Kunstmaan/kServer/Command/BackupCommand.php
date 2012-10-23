@@ -27,7 +27,7 @@ class BackupCommand extends AbstractCommand
             ->setName('backup')
             ->setDescription('Run backup on all or one projects')
             ->addArgument('project', InputArgument::OPTIONAL, 'If set, the task will only backup the project named')
-            ->addOption("quick", null, InputArgument::OPTIONAL, 'If set, no tar.gz file will be created, only the preBackup and postBackup hooks will be executed.');
+            ->addOption("quick", null, InputOption::OPTIONAL, 'If set, no tar.gz file will be created, only the preBackup and postBackup hooks will be executed.');
     }
 
     /**

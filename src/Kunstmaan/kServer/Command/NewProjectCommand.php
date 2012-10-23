@@ -26,7 +26,7 @@ class NewProjectCommand extends AbstractCommand
             ->setName('new')
             ->setDescription('Create a new kServer project')
             ->addArgument('name', InputArgument::OPTIONAL, 'The name of the project. All lowercase, no spaces or special characters. Keep it short, yet descriptive')
-            ->addOption("migrate", null, InputArgument::OPTIONAL, 'If set, the script will apply itself to an existing folder');
+            ->addOption("migrate", null, InputOption::OPTIONAL, 'If set, the script will apply itself to an existing folder');
     }
 
     /**
