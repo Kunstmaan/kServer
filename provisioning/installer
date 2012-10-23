@@ -205,7 +205,7 @@ rm -Rf /tmp/dotfiles
 
 echo "##### Installing various useful packages"
 
-checkInstalled ntp optipng jpegoptim curl htop
+checkInstalled ntp optipng jpegoptim curl htop ntp
 if [[ ! -f /usr/local/bin/composer ]]; then
     curl -s https://getcomposer.org/installer | php
     mv composer.phar /usr/local/bin/composer
@@ -220,7 +220,7 @@ echo "`hostname`.kunstmaan.be" > /etc/mailname
 
 if [ ! -d "/vagrant" ]; then
     echo "##### Installing chef"
-    checkInstalled chef
+    checkInstalled chef ruby-shadow
     echo "$(curl -fsSL https://gist.github.com/raw/c3d4107441b4c99a7245/ca3be7e8e806dd608bebf627b1c60ea7e15be375/client.rb)" > /etc/chef/client.rb
     echo "$(curl -fsSL https://gist.github.com/raw/c3d4107441b4c99a7245/c25d0d89fb05f3dc0b00faaaa8ece6990d22644d/validation.pem)" > /etc/chef/validation.pem
     /etc/init.d/chef-client restart
