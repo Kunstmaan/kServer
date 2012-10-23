@@ -44,7 +44,7 @@ echo "##### Making sure everything is up to date"
 
 sed 's@us.archive.ubuntu.com@be.archive.ubuntu.com@' -i /etc/apt/sources.list
 if `wget uranus.kunstmaan.be:3142/acng-report.html --timeout 1 --tries=1 -O - &> /dev/null` ; then
-    value="Acquire::http { Proxy \"$PROXY\"; };"
+    value='Acquire::http { Proxy "http://uranus.kunstmaan.be:3142"; };'
     echo $value > /etc/apt/apt.conf.d/01proxy
 fi
 
@@ -76,8 +76,8 @@ checkInstalled acl
 cat /etc/fstab | grep acl > /dev/null
 result=$?
 if [[ $result != 0 ]]; then
-    cat /etc/fstab | grep -v precise64-root > /etc/fstab.tmp
-    cat /etc/fstab | grep precise64-root | sed "s/remount-ro/remount-ro,acl,noatime,nodiratime/" >> /etc/fstab.tmp
+    cat /etc/fstab | grep -v root > /etc/fstab.tmp
+    cat /etc/fstab | grep root | sed "s/remount-ro/remount-ro,acl,noatime,nodiratime/" >> /etc/fstab.tmp
     mv /etc/fstab.tmp /etc/fstab
 fi
 cat /etc/fstab | grep tmpfs > /dev/null
@@ -162,7 +162,6 @@ checkApacheModuleLoaded fastcgi
 cp $INSTALLBASE/provisioning/etc/apache/fastcgi.conf /etc/apache2/mods-available/fastcgi.conf
 sysv-rc-conf --level 2345 php5-fpm on
 
-
 if [ ! -d "/vagrant" ]; then
     echo "##### Configuring newrelic"
 
@@ -208,7 +207,9 @@ cd /tmp/
 git clone https://github.com/roderik/dotfiles.git
 cd /tmp/dotfiles
 rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" --exclude "Sublime Text 2" --exclude "README.md" -a . /root/
-rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" --exclude "Sublime Text 2" --exclude "README.md" -a . /home/vagrant
+if [ -d "/home/vagrant" ]; then
+    rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" --exclude "Sublime Text 2" --exclude "README.md" -a . /home/vagrant
+fi
 cd
 rm -Rf /tmp/dotfiles
 
@@ -226,6 +227,14 @@ echo "##### Setting up Postfix"
 checkInstalled postfix
 cat /etc/postfix/main.cf | sed -e "s/`hostname`/`hostname`.kunstmaan.be/g" > /etc/postfix/main.cf
 echo "`hostname`.kunstmaan.be" > /etc/mailname
+
+if [ ! -d "/vagrant" ]; then
+    echo "##### Installing chef"
+    checkInstalled chef
+    echo "$(curl -fsSL https://gist.github.com/raw/c3d4107441b4c99a7245/ca3be7e8e806dd608bebf627b1c60ea7e15be375/client.rb)" > /etc/chef/client.rb
+    echo "$(curl -fsSL https://gist.github.com/raw/c3d4107441b4c99a7245/c25d0d89fb05f3dc0b00faaaa8ece6990d22644d/validation.pem)" > /etc/chef/validation.pem
+    /etc/init.d/chef-client restart
+fi
 
 echo "##### Restarting services"
 

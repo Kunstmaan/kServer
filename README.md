@@ -38,7 +38,6 @@ composer install
 cd ..
 ln -sf kserver/project/Vagrantfile Vagrantfile
 vagrant up
-open http://kunstmaanbundles.dev.kunstmaan.be
 ```
 
 #### Migrating an existing Symfony website, example with KunstmaanSandbox
@@ -85,5 +84,10 @@ rsync -rltD -vh --progress --compress <yourusername>@<theserver>:/home/projects/
 Since a physical server install does not have a provisioning system, we need to do some things by hand. SSH into your server, become root and run:
 
 ```bash
-to to
+sudo -i
+cd /opt/
+apt-get install git
+git clone https://github.com/Kunstmaan/kServer.git
+cd kServer
+provisioning/installer /opt/kServer MYSQLROOTPASSWD newrelickey
 ```
