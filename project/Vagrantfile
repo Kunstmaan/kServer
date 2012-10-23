@@ -5,15 +5,10 @@ Vagrant::Config.run do |config|
   config.vm.box = "roderik-quantal64"
   config.vm.box_url = "https://github.com/downloads/roderik/VagrantQuantal64Box/quantal64.box"
 
-  # Boot with a GUI so you can see the screen. (Default is headless)
-  #config.vm.boot_mode = :gui
-
   projectname=File.basename(File.dirname(__FILE__)).gsub(/\s+/, "").downcase # or customize by hand!
 
   config.vm.share_folder("kserver", "/opt/kServer", "kserver")
   config.vm.share_folder("www", "/var/www/#{projectname}/working-copy", ".", :nfs => true)
-
-  #config.vm.customize ["modifyvm", :id, "--memory", 1024]
 
   config.vm.network :hostonly, "33.33.33.33"
   config.ssh.forward_agent = true
@@ -23,6 +18,5 @@ Vagrant::Config.run do |config|
   config.hosts.aliases = "www.#{projectname}.dev.kunstmaan.be"
 
   config.vm.provision :shell, :path => "kserver/provisioning/installer", :args => "/vagrant/kserver vagrant newrelickey 'http://uranus.kunstmaan.be:3142'"
-  #config.vm.provision :shell, :path => "kserver/provisioning/installer", :args => "/vagrant/kserver vagrant newrelickey"
   config.vm.provision :shell, :path => "kserver/project/installer", :args => "#{projectname}"
 end
