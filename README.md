@@ -89,5 +89,5 @@ cd /opt/
 apt-get install git
 git clone https://github.com/Kunstmaan/kServer.git
 cd kServer
-provisioning/installer /opt/kServer MYSQLROOTPASSWD newrelickey
+bash provisioning/installer /opt/kServer MYSQLROOTPASSWD newrelickey
 ```
