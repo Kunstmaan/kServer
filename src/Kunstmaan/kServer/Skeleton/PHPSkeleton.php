@@ -42,9 +42,9 @@ class PHPSkeleton extends AbstractSkeleton
         /** @var $filesystem FileSystemProvider */
         $filesystem = $app["filesystem"];
 
-        $process->executeCommand("rsync -avh --exclude \"apache\" " . $this->getTemplateDir() . " " . $filesystem->getProjectConfigDirectory($project->getName()), $output);
+        $process->executeCommand("rsync -rltD -vh --exclude \"apache\" " . $this->getTemplateDir() . " " . $filesystem->getProjectConfigDirectory($project->getName()), $output);
 
-        $process->executeCommand("rsync -avh " . $this->getTemplateDir() . "/apache/ " . $filesystem->getProjectConfigDirectory($project->getName()). "/apache/", $output);
+        $process->executeCommand("rsync -rltD -vh " . $this->getTemplateDir() . "/apache/ " . $filesystem->getProjectConfigDirectory($project->getName()). "/apache/", $output);
 
     }
 

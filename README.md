@@ -66,7 +66,7 @@ In your vagrant box:
 ```bash
 sudo -i
 ks
-./kserver new kunstmaansandbox --migration
+./kserver new kunstmaansandbox --migrate
 ./kserver apply kunstmaansandbox php
 ./kserver apply kunstmaansandbox mysql
 ```

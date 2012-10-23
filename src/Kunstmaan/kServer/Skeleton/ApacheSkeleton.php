@@ -70,7 +70,7 @@ class ApacheSkeleton extends AbstractSkeleton
         $apacheConfig->setWebDir("web");
 
         $project->setConfiguration(ApacheSkeleton::NAME, $apacheConfig);
-        $process->executeCommand("rsync -avh " . $this->getVhostTemplateDir() . " " . $filesystem->getProjectConfigDirectory($project->getName()), $output);
+        $process->executeCommand("rsync -rltD -vh " . $this->getVhostTemplateDir() . " " . $filesystem->getProjectConfigDirectory($project->getName()), $output);
 
         $permissionDefinition = new PermissionDefinition();
         $permissionDefinition->setName("apache");
