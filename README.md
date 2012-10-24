@@ -92,4 +92,6 @@ cd kServer
 bash provisioning/installer /opt/kServer MYSQLROOTPASSWD newrelickey
 cp config.yml.dist config.yml
 vim config.yml # set the hostname
+cd /opt/kServer
+composer install
 ```
