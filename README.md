@@ -21,6 +21,11 @@ services.
 
 TODO: add more specific information
 
+## Dependencies
+
+* Vagrant: install the gem using `gem install vagrant` or download from http://vagrantup.com/
+* Vangrant-hostmaster: execute: `vagrant gem install vagrant-hostmaster` (https://github.com/mosaicxm/vagrant-hostmaster)
+
 ## Running kServer
 
 ### Running under Vagrant
