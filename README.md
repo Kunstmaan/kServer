@@ -50,6 +50,7 @@ vagrant up
 ```bash
 git clone git@github.com:Kunstmaan/KunstmaanSandbox.git
 cd KunstmaanSandbox
+composer install
 cat <<EOF >> .gitignore
 .gitmodules
 .vagrant
